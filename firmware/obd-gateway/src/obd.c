@@ -20,6 +20,7 @@
 #include "error.h"
 #include "ring_buffer.h"
 #include "time.h"
+#include "hobd_protocol.h"
 #include "obd.h"
 
 

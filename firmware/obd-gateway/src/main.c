@@ -53,12 +53,12 @@ static void init( void )
 
     enable_interrupt();
 
-    const uint8_t obd_status = obd_init();
-
 #ifdef BUILD_TYPE_DEBUG
     Uart_select( DEBUG_UART );
     uart_init( CONF_8BIT_NOPAR_1STOP, DEBUG_BAUDRATE );
 #endif
+
+    const uint8_t obd_status = obd_init();
 
     DEBUG_PUTS( "init : pass\n" );
 }
@@ -72,7 +72,7 @@ int main( void )
     {
         wdt_reset();
 
-        time_sleep_ms(50);
+        const uint8_t obd_status = obd_update();
     }
 
    return 0;
