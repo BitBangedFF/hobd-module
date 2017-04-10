@@ -13,10 +13,10 @@
     #include <inttypes.h>
     #include "board.h"
     #include "uart_lib.h"
-    #define DEBUG_PUTS( x ) \
+    #define DEBUG_PUTS( _x_ ) \
     { \
         Uart_select( DEBUG_UART ); \
-        (void) uart_put_string( (uint8_t*) x ); \
+        (void) uart_put_string( (uint8_t*) _x_ ); \
     }
     #define DEBUG_PRINTF( ... ) \
     { \
