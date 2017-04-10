@@ -28,6 +28,7 @@
 #include "debug.h"
 #include "time.h"
 #include "canbus.h"
+#include "obd.h"
 
 
 #ifdef BUILD_TYPE_DEBUG
@@ -46,12 +47,13 @@ static void init( void )
     led_off();
 
     wdt_enable( WDTO_120MS );
-
     wdt_reset();
 
     rtc_int_init();
 
     enable_interrupt();
+
+    const uint8_t obd_status = obd_init();
 
 #ifdef BUILD_TYPE_DEBUG
     Uart_select( DEBUG_UART );
