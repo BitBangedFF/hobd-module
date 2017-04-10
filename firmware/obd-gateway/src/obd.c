@@ -15,8 +15,11 @@
 #include <math.h>
 
 #include "board.h"
+
 #include "uart_lib.h"
 #include "uart_drv.h"
+
+#include "debug.h"
 #include "hobd.h"
 #include "ring_buffer.h"
 #include "time.h"

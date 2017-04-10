@@ -5,76 +5,38 @@
  */
 
 
-
-
 #include <stdlib.h>
 #include <string.h>
 #include <avr/io.h>
 #include <inttypes.h>
 
 #include "board.h"
+#include "error.h"
 #include "can_lib.h"
-#include "time.h"
 #include "canbus.h"
 
 
-
-
-// *****************************************************
-// static global types/macros
-// *****************************************************
-
-
-
-
-// *****************************************************
-// static global data
-// *****************************************************
-
-
-
-
-// *****************************************************
-// static declarations
-// *****************************************************
-
-
-
-
-// *****************************************************
-// static definitions
-// *****************************************************
-
-
-
-
-// *****************************************************
-// public definitions
-// *****************************************************
-
-//
 uint8_t canbus_init( void )
 {
-    uint8_t ret = 0;
+    uint8_t ret = ERR_OK;
 
     // wait for CAN to initialize or wdt will reset
-    while( can_init( 0 ) == 0 )
+    while(can_init(0) == 0)
     {
-        ret = 1;
+        ret = ERR_CANBUS_INIT;
     }
 
     return ret;
 }
 
 
-//
 uint8_t canbus_send(
         const uint16_t id,
         const uint8_t dlc,
         const uint8_t * const data )
 {
-    uint8_t ret = 0;
-    uint8_t status = 0;
+    uint8_t ret = ERR_OK;
+    uint8_t status = CAN_STATUS_ERROR;
     st_cmd_t cmd;
 
     // zero state
@@ -95,27 +57,22 @@ uint8_t canbus_send(
     {
         status = can_cmd( &cmd );
     }
-    while( status != CAN_CMD_ACCEPTED );
+    while(status != CAN_CMD_ACCEPTED);
 
     // wait for completion
     do
     {
-        status = can_get_status( &cmd );
+        status = can_get_status(&cmd);
 
-        if( status == CAN_STATUS_ERROR )
+        if(status == CAN_STATUS_ERROR)
         {
-            // set error
-            ret = 1;
+            ret = ERR_CANBUS_TX;
 
             // force return now
             status = CAN_STATUS_COMPLETED;
         }
     }
-    while( status != CAN_STATUS_COMPLETED );
-
-    // clear status
-    cmd.status = 0;
-    cmd.cmd = 0;
+    while(status != CAN_STATUS_COMPLETED);
 
     return ret;
 }

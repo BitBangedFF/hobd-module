@@ -14,7 +14,7 @@
 #include <avr/wdt.h>
 #include <avr/pgmspace.h>
 
-//
+// board definition/configuration
 #include "board.h"
 
 // BSP utilities
@@ -26,8 +26,8 @@
 #include "can_drv.h"
 #include "can_lib.h"
 
-//
-#include "hobd.h"
+// project includes
+#include "debug.h"
 #include "time.h"
 #include "canbus.h"
 #include "diagnostics.h"

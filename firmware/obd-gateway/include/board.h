@@ -94,22 +94,5 @@ typedef uint8_t BOOL;
 #define sw1_enable_pullup() (SW1_PORT_OUT |= (1 << SW1_PIN))
 #define sw1_get_state() (!(SW1_PORT_IN & (1 << SW1_PIN)))
 
-#ifdef BUILD_TYPE_DEBUG
-#define DEBUG_PUTS( x ) \
-{ \
-    Uart_select( DEBUG_UART ); \
-    uart_put_string( (uint8_t*) x ); \
-}
-
-#define DEBUG_PRINTF( ... ) \
-{ \
-    Uart_select( DEBUG_UART ); \
-    uart_mini_printf( __VA_ARGS__ ); \
-}
-#else
-#define DEBUG_PUTS( x )
-#define DEBUG_PRINTF( ... )
-#endif
-
 
 #endif // BOARD_H
