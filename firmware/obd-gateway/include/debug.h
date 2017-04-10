@@ -16,12 +16,12 @@
     #define DEBUG_PUTS( x ) \
     { \
         Uart_select( DEBUG_UART ); \
-        uart_put_string( (uint8_t*) x ); \
+        (void) uart_put_string( (uint8_t*) x ); \
     }
     #define DEBUG_PRINTF( ... ) \
     { \
         Uart_select( DEBUG_UART ); \
-        uart_mini_printf( __VA_ARGS__ ); \
+        (void) uart_mini_printf( __VA_ARGS__ ); \
     }
 #else
     #define DEBUG_PUTS( x )

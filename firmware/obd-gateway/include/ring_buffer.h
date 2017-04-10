@@ -28,6 +28,8 @@
 // no receive data available
 #define RING_BUFFER_NO_DATA (0x0100)
 
+#define RING_BUFFER_GET_DATA_BYTE(_data_) ((uint8_t) (_data_ & 0xFF))
+
 
 typedef struct
 {

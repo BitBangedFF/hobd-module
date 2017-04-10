@@ -23,8 +23,6 @@
 #include "obd.h"
 
 
-#define OBD_BUFFER_SIZE (512)
-
 #define UART_RX_INTERRUPT USART1_RX_vect
 #define UART_UCSRA UCSR1A
 #define UART_UCSRB UCSR1B
@@ -102,6 +100,20 @@ void obd_enable( void )
 uint8_t obd_update( void )
 {
     uint8_t ret = ERR_OK;
+
+    // TESTING
+#warning "TESTING"
+    if( ring_buffer_available( &rx_buffer ) != 0 )
+    {
+        const uint16_t rb_data = ring_buffer_getc( &rx_buffer );
+
+        if( rb_data != RING_BUFFER_NO_DATA )
+        {
+            const uint8_t data = RING_BUFFER_GET_DATA_BYTE(rb_data);
+
+            DEBUG_PRINTF( "%02X\n", data );
+        }
+    }
 
     return ret;
 }
