@@ -8,11 +8,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avr/io.h>
-#include <inttypes.h>
+#include <stdint.h>
 
 #include "board.h"
-#include "error.h"
 #include "can_lib.h"
+
+#include "error.h"
 #include "canbus.h"
 
 
