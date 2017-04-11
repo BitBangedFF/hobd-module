@@ -33,6 +33,12 @@ uint32_t time_get_ms( void )
 }
 
 
+uint32_t time_get_seconds( void )
+{
+    return (uint32_t) rtc_get_seconds();
+}
+
+
 uint32_t time_get_delta(
         const uint32_t * const value,
         const uint32_t * const now )

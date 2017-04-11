@@ -43,8 +43,8 @@
 
 //_____ D E C L A R A T I O N S ________________________________________________
 
-extern volatile uint32_t rtc_tics;
-extern volatile uint32_t rtc_milliseconds;
+//extern volatile uint32_t rtc_tics;
+//extern volatile uint32_t rtc_milliseconds;
 extern BOOL rtc_running;
 
 //_____ P R O T O T Y P E S ____________________________________________________
@@ -80,8 +80,10 @@ extern void delay_ms(uint16_t ms_count);
 extern void rtc_int_init(void);
 
 
-
 uint32_t rtc_get_ms( void );
+
+
+uint32_t rtc_get_seconds( void );
 
 //______________________________________________________________________________
 
