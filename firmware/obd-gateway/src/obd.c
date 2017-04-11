@@ -21,6 +21,7 @@
 #include "ring_buffer.h"
 #include "time.h"
 #include "hobd_protocol.h"
+#include "hobd_parser.h"
 #include "obd.h"
 
 
