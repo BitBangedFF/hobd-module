@@ -22,21 +22,16 @@
 #include "time.h"
 #include "hobd_protocol.h"
 #include "hobd_parser.h"
+#include "hobd.h"
 #include "obd.h"
 
 
 typedef struct
 {
-    uint32_t last_rx;
-    uint16_t count;
-} hobd_table_data_s;
-
-typedef struct
-{
-    hobd_table_data_s table_16_data;
-    hobd_table_16_s table_16;
-    hobd_table_data_s table_209_data;
-    hobd_table_209_s table_209;
+    hobd_obd_time_s obd_time;
+    hobd_obd1_s obd1;
+    hobd_obd2_s obd2;
+    hobd_obd3_s obd3;
 } obd_data_s;
 
 
@@ -83,13 +78,60 @@ static void hw_init( void )
 }
 
 
+static void process_data( void )
+{
+    if(hobd_parser.header.type == HOBD_MSG_TYPE_RESPONSE)
+    {
+        if(hobd_parser.header.subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP)
+        {
+            const hobd_data_table_response_s * const response =
+                    (const hobd_data_table_response_s*) &hobd_parser.data[0];
+
+            obd_data.obd_time.rx_time = hobd_parser.rx_timestamp;
+
+            if( response->table == HOBD_TABLE_16 )
+            {
+                const hobd_table_16_s * const rx_data =
+                        (const hobd_table_16_s*) &response->data[0];
+
+                obd_data.obd_time.counter_1 += 1;
+
+                obd_data.obd1.engine_rpm = rx_data->engine_rpm;
+                obd_data.obd1.wheel_speed = rx_data->wheel_speed;
+                obd_data.obd1.battery_volt = rx_data->battery_volt;
+                obd_data.obd1.tps_volt = rx_data->tps_volt;
+                obd_data.obd1.tps_percent = rx_data->tps_percent;
+
+                obd_data.obd2.ect_volt = rx_data->ect_volt;
+                obd_data.obd2.ect_temp = rx_data->ect_temp;
+                obd_data.obd2.iat_volt = rx_data->iat_volt;
+                obd_data.obd2.iat_temp = rx_data->iat_temp;
+                obd_data.obd2.map_volt = rx_data->map_volt;
+                obd_data.obd2.map_pressure = rx_data->map_pressure;
+                obd_data.obd2.fuel_injectors = rx_data->fuel_injectors;
+            }
+            else if( response->table == HOBD_TABLE_209 )
+            {
+                const hobd_table_209_s * const rx_data =
+                        (const hobd_table_209_s*) &response->data[0];
+
+                obd_data.obd_time.counter_2 += 1;
+
+                obd_data.obd3.engine_on = rx_data->engine_on;
+                obd_data.obd3.gear = rx_data->gear;
+            }
+        }
+    }
+}
+
+
 uint8_t obd_init( void )
 {
     uint8_t ret = ERR_OK;
 
     obd_uart_disable();
 
-    memset(&obd_data, 0, sizeof(obd_data));
+    (void) memset(&obd_data, 0, sizeof(obd_data));
 
     hobd_parser_init(&hobd_parser);
 
@@ -110,11 +152,15 @@ void obd_disable( void )
     obd_uart_disable();
 
     ring_buffer_flush(&rx_buffer);
+
+    hobd_parser_init(&hobd_parser);
 }
 
 
 void obd_enable( void )
 {
+    hobd_parser_init(&hobd_parser);
+
     ring_buffer_flush(&rx_buffer);
 
     obd_uart_enable();
@@ -125,9 +171,6 @@ uint8_t obd_update( void )
 {
     uint8_t ret = ERR_OK;
 
-    // TESTING
-#warning "TESTING"
-
     if(ring_buffer_available(&rx_buffer) != 0)
     {
         const uint16_t rb_data = ring_buffer_getc(&rx_buffer);
@@ -136,16 +179,14 @@ uint8_t obd_update( void )
         {
             const uint8_t data = RING_BUFFER_GET_DATA_BYTE(rb_data);
 
-            DEBUG_PRINTF("%02X\n", data);
+            const uint8_t status = hobd_parser_parse_byte(data, &hobd_parser);
 
-            ret = hobd_parser_parse_byte(data, &hobd_parser);
-
-            if( ret == ERR_OK )
+            if( status == ERR_OK )
             {
                 DEBUG_PRINTF("  got message 0x%02X\n", hobd_parser.header.type);
-            }
 
-            ret = ERR_OK;
+                process_data();
+            }
         }
     }
 
