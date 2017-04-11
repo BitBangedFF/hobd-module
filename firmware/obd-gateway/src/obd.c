@@ -89,7 +89,7 @@ static void process_data( void )
 
             obd_data.obd_time.rx_time = hobd_parser.rx_timestamp;
 
-            if( response->table == HOBD_TABLE_16 )
+            if(response->table == HOBD_TABLE_16)
             {
                 const hobd_table_16_s * const rx_data =
                         (const hobd_table_16_s*) &response->data[0];
@@ -110,7 +110,7 @@ static void process_data( void )
                 obd_data.obd2.map_pressure = rx_data->map_pressure;
                 obd_data.obd2.fuel_injectors = rx_data->fuel_injectors;
             }
-            else if( response->table == HOBD_TABLE_209 )
+            else if(response->table == HOBD_TABLE_209)
             {
                 const hobd_table_209_s * const rx_data =
                         (const hobd_table_209_s*) &response->data[0];
