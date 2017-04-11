@@ -38,6 +38,8 @@
 
 static volatile ring_buffer_s rx_buffer;
 
+static hobd_parser_s hobd_parser;
+
 
 ISR( UART_RX_INTERRUPT )
 {
@@ -64,8 +66,6 @@ static void hw_init( void )
     Uart_set_ubrr(OBD_BAUDRATE);
 
     Uart_hw_init(CONF_8BIT_NOPAR_1STOP);
-
-    obd_uart_enable();
 }
 
 
@@ -73,11 +73,17 @@ uint8_t obd_init( void )
 {
     uint8_t ret = ERR_OK;
 
+    obd_uart_enable();
+
+    hobd_parser_init(&hobd_parser);
+
     ring_buffer_init(&rx_buffer);
 
     hw_init();
 
     ring_buffer_flush(&rx_buffer);
+
+    obd_uart_enable();
 
     return ret;
 }
@@ -105,15 +111,25 @@ uint8_t obd_update( void )
 
     // TESTING
 #warning "TESTING"
-    if( ring_buffer_available( &rx_buffer ) != 0 )
-    {
-        const uint16_t rb_data = ring_buffer_getc( &rx_buffer );
 
-        if( rb_data != RING_BUFFER_NO_DATA )
+    if(ring_buffer_available(&rx_buffer) != 0)
+    {
+        const uint16_t rb_data = ring_buffer_getc(&rx_buffer);
+
+        if(rb_data != RING_BUFFER_NO_DATA)
         {
             const uint8_t data = RING_BUFFER_GET_DATA_BYTE(rb_data);
 
-            DEBUG_PRINTF( "%02X\n", data );
+            DEBUG_PRINTF("%02X\n", data);
+
+            ret = hobd_parser_parse_byte(data, &hobd_parser);
+
+            if( ret == ERR_OK )
+            {
+                DEBUG_PRINTF("  got message 0x%02X\n", hobd_parser.header.type);
+            }
+
+            ret = ERR_OK;
         }
     }
 

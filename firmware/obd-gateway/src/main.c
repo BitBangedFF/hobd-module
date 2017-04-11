@@ -46,7 +46,7 @@ static void init( void )
     led_init();
     led_off();
 
-    wdt_enable( WDTO_120MS );
+    wdt_enable(WDTO_120MS);
     wdt_reset();
 
     rtc_int_init();
@@ -54,13 +54,13 @@ static void init( void )
     enable_interrupt();
 
 #ifdef BUILD_TYPE_DEBUG
-    Uart_select( DEBUG_UART );
-    uart_init( CONF_8BIT_NOPAR_1STOP, DEBUG_BAUDRATE );
+    Uart_select(DEBUG_UART);
+    uart_init(CONF_8BIT_NOPAR_1STOP, DEBUG_BAUDRATE);
 #endif
 
     const uint8_t obd_status = obd_init();
 
-    DEBUG_PUTS( "init : pass\n" );
+    DEBUG_PUTS("init : pass\n");
 }
 
 

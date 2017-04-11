@@ -25,15 +25,15 @@ static uint8_t valid_type(
 {
     uint8_t valid_type;
 
-    if( type == HOBD_MSG_TYPE_QUERY )
+    if(type == HOBD_MSG_TYPE_QUERY)
     {
         valid_type = type;
     }
-    else if( type == HOBD_MSG_TYPE_RESPONSE )
+    else if(type == HOBD_MSG_TYPE_RESPONSE)
     {
         valid_type = type;
     }
-    else if( type == HOBD_MSG_TYPE_WAKE_UP )
+    else if(type == HOBD_MSG_TYPE_WAKE_UP)
     {
         valid_type = type;
     }
@@ -51,19 +51,19 @@ static uint8_t valid_subtype(
 {
     uint8_t valid_subtype;
 
-    if( subtype == HOBD_MSG_SUBTYPE_WAKE_UP )
+    if(subtype == HOBD_MSG_SUBTYPE_WAKE_UP)
     {
         valid_subtype = subtype;
     }
-    else if( subtype == HOBD_MSG_SUBTYPE_INIT )
+    else if(subtype == HOBD_MSG_SUBTYPE_INIT)
     {
         valid_subtype = subtype;
     }
-    else if( subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP )
+    else if(subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP)
     {
         valid_subtype = subtype;
     }
-    else if( subtype == HOBD_MSG_SUBTYPE_TABLE )
+    else if(subtype == HOBD_MSG_SUBTYPE_TABLE)
     {
         valid_subtype = subtype;
     }
@@ -85,6 +85,7 @@ void hobd_parser_init(
     parser->bytes_read = 0;
     parser->data_size = 0;
     parser->checksum = 0;
+    parser->checksum = 0;
 }
 
 
@@ -94,36 +95,39 @@ uint8_t hobd_parser_parse_byte(
 {
     uint8_t ret = ERR_NO_DATA;
 
-    if( parser->state == HOBD_PARSER_STATE_GET_TYPE )
+    if(parser->state == HOBD_PARSER_STATE_GET_TYPE)
     {
-        const uint8_t type = valid_type( byte );
+        const uint8_t type = valid_type(byte);
 
-        if( type != HOBD_MSG_TYPE_INVALID )
+        if(type != HOBD_MSG_TYPE_INVALID)
         {
-            parser->checksum = 0;
             parser->data_size = 0;
             parser->header.type = type;
+            parser->checksum = 0;
+            parser->checksum_part = (uint16_t) byte;
             parser->state = HOBD_PARSER_STATE_GET_SIZE;
         }
     }
-    else if( parser->state == HOBD_PARSER_STATE_GET_SIZE )
+    else if(parser->state == HOBD_PARSER_STATE_GET_SIZE)
     {
-        if( byte >= HOBD_MSG_SIZE_MIN )
+        if(byte >= HOBD_MSG_SIZE_MIN)
         {
             parser->header.size = byte;
             parser->data_size = (byte - HOBD_MSG_SIZE_MIN);
+            parser->checksum_part += (uint16_t) byte;
             parser->state = HOBD_PARSER_STATE_GET_SUBTYPE;
         }
     }
-    else if( parser->state == HOBD_PARSER_STATE_GET_SUBTYPE )
+    else if(parser->state == HOBD_PARSER_STATE_GET_SUBTYPE)
     {
-        const uint8_t subtype = valid_subtype( byte );
+        const uint8_t subtype = valid_subtype(byte);
 
-        if( subtype != HOBD_MSG_SUBTYPE_INVALID )
+        if(subtype != HOBD_MSG_SUBTYPE_INVALID)
         {
             parser->header.subtype = subtype;
+            parser->checksum_part += (uint16_t) byte;
 
-            if( parser->header.size > HOBD_MSG_SIZE_MIN )
+            if(parser->header.size > HOBD_MSG_SIZE_MIN)
             {
                 parser->bytes_read = 0;
                 parser->state = HOBD_PARSER_STATE_GET_DATA;
@@ -139,22 +143,43 @@ uint8_t hobd_parser_parse_byte(
             parser->state = HOBD_PARSER_STATE_GET_TYPE;
         }
     }
-    else if( parser->state == HOBD_PARSER_STATE_GET_DATA )
+    else if(parser->state == HOBD_PARSER_STATE_GET_DATA)
     {
-        if( parser->data_size != 0 )
+        if(parser->data_size != 0)
         {
-            parser->data[ parser->bytes_read ] = byte;
+            parser->data[parser->bytes_read] = byte;
             parser->bytes_read += 1;
+            parser->checksum_part += (uint16_t) byte;
 
-            if( parser->bytes_read == parser->data_size )
+            if(parser->bytes_read == parser->data_size)
             {
                 parser->state = HOBD_PARSER_STATE_GET_CHECKSUM;
             }
         }
     }
-    else if( parser->state == HOBD_PARSER_STATE_GET_CHECKSUM )
+    else if(parser->state == HOBD_PARSER_STATE_GET_CHECKSUM)
     {
 #warning "TODO - checksum calculation and state recovery"
+
+        if( parser->checksum_part > 0x0100 )
+        {
+            parser->checksum_part = (0x0100 - (parser->checksum_part & 0x00FF));
+        }
+        else
+        {
+            parser->checksum_part = (0x0100 - parser->checksum_part);
+        }
+
+        parser->checksum = (uint8_t) (parser->checksum_part & 0x00FF);
+
+        if( parser->checksum == byte )
+        {
+            ret = ERR_OK;
+        }
+        else
+        {
+            ret = ERR_NO_DATA;
+        }
 
         parser->state = HOBD_PARSER_STATE_GET_TYPE;
     }
