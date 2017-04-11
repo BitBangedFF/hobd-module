@@ -84,8 +84,11 @@ void hobd_parser_init(
     parser->header.size = 0;
     parser->bytes_read = 0;
     parser->data_size = 0;
+    parser->checksum_part = 0;
     parser->checksum = 0;
-    parser->checksum = 0;
+    parser->rx_timestamp = 0;
+    parser->valid_count = 0;
+    parser->invalid_count = 0;
 }
 
 
@@ -103,6 +106,7 @@ uint8_t hobd_parser_parse_byte(
         {
             parser->data_size = 0;
             parser->header.type = type;
+            parser->rx_timestamp = 0;
             parser->checksum = 0;
             parser->checksum_part = (uint16_t) byte;
             parser->state = HOBD_PARSER_STATE_GET_SIZE;
@@ -124,6 +128,8 @@ uint8_t hobd_parser_parse_byte(
 
         if(subtype != HOBD_MSG_SUBTYPE_INVALID)
         {
+            parser->rx_timestamp = time_get_ms();
+
             parser->header.subtype = subtype;
             parser->checksum_part += (uint16_t) byte;
 
@@ -140,6 +146,7 @@ uint8_t hobd_parser_parse_byte(
         }
         else
         {
+            parser->invalid_count += 1;
             parser->state = HOBD_PARSER_STATE_GET_TYPE;
         }
     }
@@ -159,8 +166,6 @@ uint8_t hobd_parser_parse_byte(
     }
     else if(parser->state == HOBD_PARSER_STATE_GET_CHECKSUM)
     {
-#warning "TODO - checksum calculation and state recovery"
-
         if( parser->checksum_part > 0x0100 )
         {
             parser->checksum_part = (0x0100 - (parser->checksum_part & 0x00FF));
@@ -174,11 +179,13 @@ uint8_t hobd_parser_parse_byte(
 
         if( parser->checksum == byte )
         {
+            parser->valid_count += 1;
             ret = ERR_OK;
         }
         else
         {
-            ret = ERR_NO_DATA;
+            parser->invalid_count += 1;
+            ret = ERR_BAD_CHECKSUM;
         }
 
         parser->state = HOBD_PARSER_STATE_GET_TYPE;

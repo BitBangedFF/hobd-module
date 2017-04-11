@@ -33,6 +33,9 @@ typedef struct
     uint8_t data[HOBD_MSG_SIZE_MAX];
     uint16_t checksum_part;
     uint8_t checksum;
+    uint32_t rx_timestamp;
+    uint16_t valid_count;
+    uint16_t invalid_count;
 } hobd_parser_s;
 
 

@@ -25,12 +25,26 @@
 #include "obd.h"
 
 
+typedef struct
+{
+    uint32_t last_rx;
+    uint16_t count;
+} hobd_table_data_s;
+
+typedef struct
+{
+    hobd_table_data_s table_16_data;
+    hobd_table_16_s table_16;
+    hobd_table_data_s table_209_data;
+    hobd_table_209_s table_209;
+} obd_data_s;
+
+
 #define UART_RX_INTERRUPT USART1_RX_vect
 #define UART_UCSRA UCSR1A
 #define UART_UCSRB UCSR1B
 #define UART_UCSRC UCSR1C
 #define UART_DATA UDR1
-
 
 #define obd_uart_enable() (UART_UCSRB |= (_BV(RXEN1) | _BV(TXEN1) | _BV(RXCIE1)))
 #define obd_uart_disable() (UART_UCSRB &= ~(_BV(RXEN1) | _BV(TXEN1) | _BV(RXCIE1)))
@@ -40,14 +54,14 @@ static volatile ring_buffer_s rx_buffer;
 
 static hobd_parser_s hobd_parser;
 
+static obd_data_s obd_data;
+
 
 ISR( UART_RX_INTERRUPT )
 {
-    // read UART status register and UART data register
     const uint8_t status  = UART_UCSRA;
     const uint8_t data = UART_DATA;
 
-    // read error status
     rx_buffer.error = (status & (_BV(FE1) | _BV(DOR1)) );
 
     // push data into the rx buffer, error is updated with return status
@@ -73,7 +87,9 @@ uint8_t obd_init( void )
 {
     uint8_t ret = ERR_OK;
 
-    obd_uart_enable();
+    obd_uart_disable();
+
+    memset(&obd_data, 0, sizeof(obd_data));
 
     hobd_parser_init(&hobd_parser);
 
