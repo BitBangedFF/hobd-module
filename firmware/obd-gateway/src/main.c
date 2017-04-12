@@ -29,6 +29,8 @@
 #include "time.h"
 #include "canbus.h"
 #include "obd.h"
+#include "diagnostics.h"
+#include "hobd.h"
 
 
 #ifdef BUILD_TYPE_DEBUG
@@ -58,8 +60,9 @@ static void init( void )
 #endif
 
     wdt_reset();
-    obd_init();
+    diagnostics_init();
     canbus_init();
+    obd_init();
 
     DEBUG_PRINTF("module '%s' initialized\n", MODULE_NAME);
 }
@@ -69,11 +72,17 @@ int main( void )
 {
     init();
 
+    diagnostics_update();
+
+    diagnostics_set_state(HOBD_HEARTBEAT_STATE_OK);
+
     while(1)
     {
         wdt_reset();
 
         obd_update();
+
+        diagnostics_update();
     }
 
    return 0;

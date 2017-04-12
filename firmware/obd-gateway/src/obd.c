@@ -21,6 +21,7 @@
 #include "ring_buffer.h"
 #include "time.h"
 #include "canbus.h"
+#include "diagnostics.h"
 #include "hobd_protocol.h"
 #include "hobd_parser.h"
 #include "hobd.h"
@@ -47,9 +48,7 @@ typedef struct
 
 
 static volatile ring_buffer_s rx_buffer;
-
 static hobd_parser_s hobd_parser;
-
 static obd_data_s obd_data;
 
 
@@ -128,34 +127,40 @@ static void process_rx_data( void )
 
 static void publish_can_data( void )
 {
-    uint8_t ret;
-#warning "TODO - handle return"
+    uint8_t ret = ERR_OK;
 
-    ret = canbus_send(
+    ret |= canbus_send(
             HOBD_CAN_ID_OBD_TIME,
             (uint8_t) sizeof(obd_data.obd_time),
             (const uint8_t*) &obd_data.obd_time);
 
-    ret = canbus_send(
+    ret |= canbus_send(
             HOBD_CAN_ID_OBD1,
             (uint8_t) sizeof(obd_data.obd1),
             (const uint8_t*) &obd_data.obd1);
 
-    ret = canbus_send(
+    ret |= canbus_send(
             HOBD_CAN_ID_OBD2,
             (uint8_t) sizeof(obd_data.obd2),
             (const uint8_t*) &obd_data.obd2);
 
-    ret = canbus_send(
+    ret |= canbus_send(
             HOBD_CAN_ID_OBD3,
             (uint8_t) sizeof(obd_data.obd3),
             (const uint8_t*) &obd_data.obd3);
+
+    if(ret != ERR_OK)
+    {
+        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_CANBUS_TX);
+    }
 }
 
 
 void obd_init( void )
 {
     obd_uart_disable();
+
+    diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX);
 
     (void) memset(&obd_data, 0, sizeof(obd_data));
 
@@ -208,6 +213,8 @@ void obd_update( void )
                 process_rx_data();
 
                 publish_can_data();
+
+                diagnostics_clear_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX);
             }
         }
     }
