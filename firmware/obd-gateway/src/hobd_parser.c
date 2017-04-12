@@ -166,7 +166,7 @@ uint8_t hobd_parser_parse_byte(
     }
     else if(parser->state == HOBD_PARSER_STATE_GET_CHECKSUM)
     {
-        if( parser->checksum_part > 0x0100 )
+        if(parser->checksum_part > 0x0100)
         {
             parser->checksum_part = (0x0100 - (parser->checksum_part & 0x00FF));
         }
@@ -177,7 +177,7 @@ uint8_t hobd_parser_parse_byte(
 
         parser->checksum = (uint8_t) (parser->checksum_part & 0x00FF);
 
-        if( parser->checksum == byte )
+        if(parser->checksum == byte)
         {
             parser->valid_count += 1;
             ret = ERR_OK;
