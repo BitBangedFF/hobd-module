@@ -44,6 +44,8 @@ static void init( void )
 
     sw0_init();
     sw0_enable_pullup();
+    sw1_init();
+    sw1_enable_pullup();
 
     led_init();
     led_off();
