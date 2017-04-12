@@ -24,4 +24,7 @@ void obd_enable( void );
 void obd_update( void );
 
 
+void obd_update_timeout( void );
+
+
 #endif	/* OBD_H */

@@ -85,6 +85,13 @@ uint32_t rtc_get_ms( void );
 
 uint32_t rtc_get_seconds( void );
 
+
+uint8_t rtc_timer_get( void );
+
+
+void rtc_timer_clear( void );
+
+
 //______________________________________________________________________________
 
 #endif  // _RTC_DRV_H_

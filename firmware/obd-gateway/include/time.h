@@ -27,4 +27,10 @@ uint32_t time_get_delta(
         const uint32_t * const now );
 
 
+uint8_t time_get_timer( void );
+
+
+void time_clear_timer( void );
+
+
 #endif	/* TIME_H */

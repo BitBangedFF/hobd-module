@@ -62,3 +62,15 @@ uint32_t time_get_delta(
 
     return delta;
 }
+
+
+uint8_t time_get_timer( void )
+{
+    return rtc_timer_get();
+}
+
+
+void time_clear_timer( void )
+{
+    rtc_timer_clear();
+}

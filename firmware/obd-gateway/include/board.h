@@ -60,6 +60,7 @@ typedef uint8_t BOOL;
 #define USE_TIMER8 TIMER8_2
 #define RTC_TIMER (2)
 #define RTC_CLOCK (0)
+#define RTC_SW_TIMER_TICK (50)
 
 // CAN configuration
 #define CAN_BAUDRATE (500)

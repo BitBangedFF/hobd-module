@@ -37,6 +37,8 @@ typedef struct
 } obd_data_s;
 
 
+#define OBD_TIMEOUT_RX (500)
+
 #define UART_RX_INTERRUPT USART1_RX_vect
 #define UART_UCSRA UCSR1A
 #define UART_UCSRB UCSR1B
@@ -217,5 +219,20 @@ void obd_update( void )
                 diagnostics_clear_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX);
             }
         }
+    }
+}
+
+
+void obd_update_timeout( void )
+{
+    const uint32_t now = time_get_ms();
+
+    const uint32_t delta = time_get_delta(
+            &obd_data.obd_time.rx_time,
+            &now);
+
+    if(delta >= OBD_TIMEOUT_RX)
+    {
+        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX);
     }
 }

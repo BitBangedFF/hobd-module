@@ -33,9 +33,18 @@
 
 //_____ D E C L A R A T I O N S ________________________________________________
 
+
+// ticks
+#ifndef RTC_SW_TIMER_TICK
+#define RTC_SW_TIMER_TICK (50)
+#warning "using default RTC_SW_TIMER_TICK 50"
+#endif
+
 static volatile uint32_t rtc_tics;
 static volatile uint16_t rtc_counter;
 static volatile uint32_t rtc_seconds;
+
+static volatile uint8_t timer_reached;
 
 BOOL rtc_running = OFF;
 
@@ -182,6 +191,7 @@ uint16_t i;
     rtc_tics = 0;
     rtc_counter = 0;
     rtc_seconds = 0;
+    timer_reached = 0;
 
     rtc_running = ON;
     enable_interrupt();
@@ -207,6 +217,11 @@ ISR(TIMER2_COMP_vect)
 {
     rtc_tics += 1;
     rtc_counter += 1;
+
+    if(rtc_counter == RTC_SW_TIMER_TICK)
+    {
+        timer_reached = 1;
+    }
 
     if(rtc_counter == 1000)
     {
@@ -235,4 +250,16 @@ uint32_t rtc_get_seconds( void )
     enable_interrupt();
 
     return seconds;
+}
+
+
+uint8_t rtc_timer_get( void )
+{
+    return timer_reached;
+}
+
+
+void rtc_timer_clear( void )
+{
+    timer_reached = 0;
 }
