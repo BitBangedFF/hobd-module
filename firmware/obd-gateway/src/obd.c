@@ -62,9 +62,14 @@ ISR( UART_RX_INTERRUPT )
     rx_buffer.error = (status & (_BV(FE1) | _BV(DOR1)) );
 
     // push data into the rx buffer, error is updated with return status
-    (void) ring_buffer_putc(
+    ring_buffer_putc(
             data,
             &rx_buffer);
+
+    if((rx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
+    {
+        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX_OVERFLOW);
+    }
 }
 
 
