@@ -17,17 +17,10 @@
 #include "canbus.h"
 
 
-uint8_t canbus_init( void )
+void canbus_init( void )
 {
-    uint8_t ret = ERR_OK;
-
     // wait for CAN to initialize or wdt will reset
-    while(can_init(0) == 0)
-    {
-        ret = ERR_CANBUS_INIT;
-    }
-
-    return ret;
+    while(can_init(0) == 0) {}
 }
 
 
@@ -56,7 +49,7 @@ uint8_t canbus_send(
     // send the data to an available MOB
     do
     {
-        status = can_cmd( &cmd );
+        status = can_cmd(&cmd);
     }
     while(status != CAN_CMD_ACCEPTED);
 

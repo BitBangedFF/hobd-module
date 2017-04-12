@@ -50,7 +50,6 @@ static void init( void )
     wdt_reset();
 
     rtc_int_init();
-
     enable_interrupt();
 
 #ifdef BUILD_TYPE_DEBUG
@@ -58,9 +57,11 @@ static void init( void )
     uart_init(CONF_8BIT_NOPAR_1STOP, DEBUG_BAUDRATE);
 #endif
 
-    const uint8_t obd_status = obd_init();
+    wdt_reset();
+    obd_init();
+    canbus_init();
 
-    DEBUG_PUTS("init : pass\n");
+    DEBUG_PRINTF("module '%s' initialized\n", MODULE_NAME);
 }
 
 
@@ -72,7 +73,7 @@ int main( void )
     {
         wdt_reset();
 
-        const uint8_t obd_status = obd_update();
+        obd_update();
     }
 
    return 0;

@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 
+#define MODULE_NAME "OBD-GATEWAY"
 #define NODE_ID (0x05)
 #define HARDWARE_VERSION (1)
 #define FIRMWARE_VERSION (1)

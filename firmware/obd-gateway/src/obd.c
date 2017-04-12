@@ -20,6 +20,7 @@
 #include "error.h"
 #include "ring_buffer.h"
 #include "time.h"
+#include "canbus.h"
 #include "hobd_protocol.h"
 #include "hobd_parser.h"
 #include "hobd.h"
@@ -78,7 +79,7 @@ static void hw_init( void )
 }
 
 
-static void process_data( void )
+static void process_rx_data( void )
 {
     if(hobd_parser.header.type == HOBD_MSG_TYPE_RESPONSE)
     {
@@ -125,10 +126,35 @@ static void process_data( void )
 }
 
 
-uint8_t obd_init( void )
+static void publish_can_data( void )
 {
-    uint8_t ret = ERR_OK;
+    uint8_t ret;
+#warning "TODO - handle return"
 
+    ret = canbus_send(
+            HOBD_CAN_ID_OBD_TIME,
+            (uint8_t) sizeof(obd_data.obd_time),
+            (const uint8_t*) &obd_data.obd_time);
+
+    ret = canbus_send(
+            HOBD_CAN_ID_OBD1,
+            (uint8_t) sizeof(obd_data.obd1),
+            (const uint8_t*) &obd_data.obd1);
+
+    ret = canbus_send(
+            HOBD_CAN_ID_OBD2,
+            (uint8_t) sizeof(obd_data.obd2),
+            (const uint8_t*) &obd_data.obd2);
+
+    ret = canbus_send(
+            HOBD_CAN_ID_OBD3,
+            (uint8_t) sizeof(obd_data.obd3),
+            (const uint8_t*) &obd_data.obd3);
+}
+
+
+void obd_init( void )
+{
     obd_uart_disable();
 
     (void) memset(&obd_data, 0, sizeof(obd_data));
@@ -142,8 +168,6 @@ uint8_t obd_init( void )
     ring_buffer_flush(&rx_buffer);
 
     obd_uart_enable();
-
-    return ret;
 }
 
 
@@ -167,10 +191,8 @@ void obd_enable( void )
 }
 
 
-uint8_t obd_update( void )
+void obd_update( void )
 {
-    uint8_t ret = ERR_OK;
-
     if(ring_buffer_available(&rx_buffer) != 0)
     {
         const uint16_t rb_data = ring_buffer_getc(&rx_buffer);
@@ -181,14 +203,12 @@ uint8_t obd_update( void )
 
             const uint8_t status = hobd_parser_parse_byte(data, &hobd_parser);
 
-            if( status == ERR_OK )
+            if(status == ERR_OK)
             {
-                DEBUG_PRINTF("  got message 0x%02X\n", hobd_parser.header.type);
+                process_rx_data();
 
-                process_data();
+                publish_can_data();
             }
         }
     }
-
-    return ret;
 }

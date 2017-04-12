@@ -12,7 +12,7 @@
 #include <stdint.h>
 
 
-uint8_t canbus_init( void );
+void canbus_init( void );
 
 
 uint8_t canbus_send(
