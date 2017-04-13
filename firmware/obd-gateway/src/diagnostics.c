@@ -35,13 +35,6 @@ static uint32_t last_led_toggle;
 static const uint16_t CAN_ID_HEARTBEAT =
         (uint16_t) (HOBD_CAN_ID_HEARTBEAT_BASE + NODE_ID);
 
-static const uint32_t led_blink_intervals[] =
-{
-    [LED_STATE_OFF] = 0,
-    [LED_STATE_BLINK] = DIAGNOSTICS_BLINK_INTERVAL,
-    [LED_STATE_ON] = 0
-};
-
 
 static void send_heartbeat(
         const uint32_t * const now,
@@ -101,7 +94,7 @@ static void update_led(
                 &last_led_toggle,
                 now);
 
-        if(delta >= led_blink_intervals[led_state])
+        if(delta >= DIAGNOSTICS_BLINK_INTERVAL)
         {
             last_led_toggle = (*now);
             led_toggle();
