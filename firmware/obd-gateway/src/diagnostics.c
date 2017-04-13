@@ -85,7 +85,7 @@ static void send_heartbeat(
 static void update_led(
         const uint32_t * const now )
 {
-    const uint8_t connected = (hobd_heartbeat_data.warning_register & HOBD_HEARTBEAT_WARN_OBDBUS_RX);
+    const uint8_t connected = ((hobd_heartbeat_data.warning_register & HOBD_HEARTBEAT_WARN_OBDBUS_RX) == 0);
 
     if(hobd_heartbeat_data.state != HOBD_HEARTBEAT_STATE_OK)
     {
