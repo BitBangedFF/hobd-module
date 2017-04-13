@@ -172,6 +172,17 @@ void st_init(
     {
         signal_table_s * const table = &state->signal_tables[ index++ ];
 
+        table->can_id = HOBD_CAN_ID_OBD_UPTIME;
+        table->can_dlc = (unsigned long) sizeof( table->obd_uptime );
+        snprintf(
+                table->table_name,
+                sizeof(table->table_name),
+                "OBD Up-time" );
+    }
+
+    {
+        signal_table_s * const table = &state->signal_tables[ index++ ];
+
         table->can_id = HOBD_CAN_ID_OBD1;
         table->can_dlc = (unsigned long) sizeof( table->obd1 );
         snprintf(

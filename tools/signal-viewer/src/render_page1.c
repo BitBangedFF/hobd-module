@@ -47,6 +47,12 @@ void render_hobd_heartbeat(
         const GLdouble base_y );
 
 
+void render_hobd_obd_uptime(
+        const config_s * const config,
+        const hobd_obd_uptime_s * const data,
+        const GLdouble base_x,
+        const GLdouble base_y );
+
 
 
 // *****************************************************
@@ -72,6 +78,10 @@ void render_page1(
             HOBD_CAN_ID_HEARTBEAT_OBD_GATEWAY,
             state );
 
+    signal_table_s * const table1 = st_get_table_by_can_id(
+            HOBD_CAN_ID_OBD_UPTIME,
+            state );
+
     // render tables
     if( table0 != NULL )
     {
@@ -81,6 +91,12 @@ void render_page1(
                 &table0->heartbeat_obd_gateway,
                 20.0,
                 80.0 );
+    }
+
+    if( table1 != NULL )
+    {
+        render_table_base( table1, 400.0, 40.0 );
+        render_hobd_obd_uptime( config, &table1->obd_uptime, 415.0, 80.0 );
     }
 
     glPopMatrix();

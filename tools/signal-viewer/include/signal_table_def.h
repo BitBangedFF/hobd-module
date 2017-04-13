@@ -62,6 +62,7 @@ typedef struct
         //
         //
         hobd_obd_time_s obd_time;
+        hobd_obd_uptime_s obd_uptime;
         //
         //
         hobd_obd1_s obd1;

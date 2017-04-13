@@ -4,6 +4,7 @@
 TARGET := bin/signal-viewer
 
 SRCS := src/render_hobd_obd_time.c \
+    src/render_hobd_obd_uptime.c \
 	src/render_hobd_obd1.c \
 	src/render_hobd_obd2.c \
 	src/render_hobd_obd3.c \
