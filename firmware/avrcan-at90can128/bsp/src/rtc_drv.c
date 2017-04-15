@@ -44,6 +44,7 @@ static volatile uint32_t rtc_tics;
 static volatile uint16_t rtc_counter;
 static volatile uint32_t rtc_seconds;
 
+static volatile uint32_t timer_counter;
 static volatile uint8_t timer_reached;
 
 BOOL rtc_running = OFF;
@@ -191,6 +192,7 @@ uint16_t i;
     rtc_tics = 0;
     rtc_counter = 0;
     rtc_seconds = 0;
+    timer_counter = 0;
     timer_reached = 0;
 
     rtc_running = ON;
@@ -217,16 +219,18 @@ ISR(TIMER2_COMP_vect)
 {
     rtc_tics += 1;
     rtc_counter += 1;
+    timer_counter += 1;
 
-    if(rtc_counter == RTC_SW_TIMER_TICK)
+    if(timer_counter == RTC_SW_TIMER_TICK)
     {
         timer_reached = 1;
+        timer_counter = 0;
     }
 
     if(rtc_counter == 1000)
     {
-        rtc_counter = 0;
         rtc_seconds += 1;
+        rtc_counter = 0;
     }
 }
 
