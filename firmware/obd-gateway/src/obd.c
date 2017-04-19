@@ -22,6 +22,7 @@
 #include "time.h"
 #include "canbus.h"
 #include "diagnostics.h"
+#include "gear_position.h"
 #include "hobd_protocol.h"
 #include "hobd_parser.h"
 #include "hobd.h"
