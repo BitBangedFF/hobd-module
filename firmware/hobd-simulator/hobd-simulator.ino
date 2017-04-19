@@ -295,8 +295,13 @@ void loop( void )
     table_209_data.engine_on = 1;
     table_209_data.gear = 1;
 
-    table_16_data.engine_rpm += 25;
+    table_16_data.engine_rpm += 47;
     table_16_data.wheel_speed += 1;
     table_16_data.tps_volt += 1;
     table_16_data.tps_percent += 1;
+
+    if(table_16_data.wheel_speed == 0)
+    {
+        table_16_data.engine_rpm = 0;
+    }
 }
