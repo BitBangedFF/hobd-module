@@ -7,6 +7,9 @@
  *   - http://woodsware.aciwebs.com/gears/
  *   - http://www.datamc.org/2013/06/03/gear-position/
  *   - http://www.datamc.org/2016/08/07/tire-rolling-radius-correcting-wheel-speed/
+ *   - https://www.weekend-techdiy.com/motorcycle-datalogger
+ *   - http://forum.arduino.cc/index.php?topic=8474.15
+ *   - http://fritzing.org/media/fritzing-repo/projects/m/motorcycle-computer-based-on-arduino/code/MCGIPv2_2.pde
  *
  */
 
