@@ -19,8 +19,12 @@
 #define GEAR_POSITION_4 (4)
 #define GEAR_POSITION_5 (5)
 #define GEAR_POSITION_6 (6)
+#define GEAR_POSITION_COUNT (6)
 
-// TODO
+
+uint8_t gp_get(
+        const uint16_t engine_rpm,
+        const uint8_t wheel_speed );
 
 
 #endif	/* GEAR_POSITION_H */
