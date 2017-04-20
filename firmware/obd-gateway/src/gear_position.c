@@ -67,19 +67,22 @@ uint8_t gp_get(
 {
     uint8_t gear_pos = GEAR_POSITION_UNKNOWN;
 
-    const float ratio = ((float) engine_rpm / (float) wheel_speed);
-
-    uint8_t idx;
-    for(idx = 0; (idx < GEAR_POSITION_COUNT) && (gear_pos == GEAR_POSITION_UNKNOWN); idx += 1)
+    if((engine_rpm != 0) && (wheel_speed != 0))
     {
-        const uint8_t status = comparef(
-                ratio,
-                FINAL_RATIOS[idx],
-                FINAL_RATIO_TOLERANCE);
+        const float ratio = ((float) engine_rpm / (float) wheel_speed);
 
-        if( status != 0 )
+        uint8_t idx;
+        for(idx = 0; (idx < GEAR_POSITION_COUNT) && (gear_pos == GEAR_POSITION_UNKNOWN); idx += 1)
         {
-            gear_pos = (idx + 1);
+            const uint8_t status = comparef(
+                    ratio,
+                    FINAL_RATIOS[idx],
+                    FINAL_RATIO_TOLERANCE);
+
+            if(status != 0)
+            {
+                gear_pos = (idx + 1);
+            }
         }
     }
 
