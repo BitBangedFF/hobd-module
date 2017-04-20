@@ -65,14 +65,14 @@ uint8_t gp_get(
         const uint16_t engine_rpm,
         const uint8_t wheel_speed )
 {
-    uint8_t gear_pos = GEAR_POSITION_UNKNOWN;
+    uint8_t gear_pos = HOBD_GEAR_POSITION_UNKNOWN;
 
     if((engine_rpm != 0) && (wheel_speed != 0))
     {
         const float ratio = ((float) engine_rpm / (float) wheel_speed);
 
         uint8_t idx;
-        for(idx = 0; (idx < GEAR_POSITION_COUNT) && (gear_pos == GEAR_POSITION_UNKNOWN); idx += 1)
+        for(idx = 0; (idx < HOBD_GEAR_POSITION_COUNT) && (gear_pos == HOBD_GEAR_POSITION_UNKNOWN); idx += 1)
         {
             const uint8_t status = comparef(
                     ratio,

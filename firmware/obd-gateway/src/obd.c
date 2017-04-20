@@ -74,6 +74,54 @@ ISR( UART_RX_INTERRUPT )
 }
 
 
+static uint8_t hobd_engine_state(
+        const uint8_t state )
+{
+    uint8_t engine_state;
+
+    if(state == HOBD_TABLE_209_ENGINE_STATE_OFF)
+    {
+        engine_state = HOBD_ENGINE_STATE_OFF;
+    }
+    else if(state == HOBD_TABLE_209_ENGINE_STATE_ON)
+    {
+        engine_state = HOBD_ENGINE_STATE_ON;
+    }
+    else
+    {
+        engine_state = HOBD_ENGINE_STATE_UNKNOWN;
+    }
+
+    return engine_state;
+}
+
+
+static uint8_t hobd_transmission_state(
+        const uint8_t state )
+{
+    uint8_t transm_state;
+
+    if(state == HOBD_TABLE_209_TRANSMISSION_STATE_GEAR)
+    {
+        transm_state = HOBD_TRANSMISSION_STATE_GEAR;
+    }
+    else if(state == HOBD_TABLE_209_TRANSMISSION_STATE_NEUTRAL)
+    {
+        transm_state = HOBD_TRANSMISSION_STATE_NEUTRAL;
+    }
+    else if(state == HOBD_TABLE_209_TRANSMISSION_STATE_KICKSTAND)
+    {
+        transm_state = HOBD_TRANSMISSION_STATE_KICKSTAND;
+    }
+    else
+    {
+        transm_state = HOBD_TRANSMISSION_STATE_UNKNOWN;
+    }
+
+    return transm_state;
+}
+
+
 static void hw_init( void )
 {
     Uart_select(OBD_UART);
@@ -117,6 +165,9 @@ static void process_rx_data( void )
                 obd_data.obd2.map_volt = rx_data->map_volt;
                 obd_data.obd2.map_pressure = rx_data->map_pressure;
                 obd_data.obd2.fuel_injectors = rx_data->fuel_injectors;
+
+                obd_data.obd3.gear_position =
+                        gp_get(rx_data->engine_rpm, rx_data->wheel_speed);
             }
             else if(response->table == HOBD_TABLE_209)
             {
@@ -125,8 +176,10 @@ static void process_rx_data( void )
 
                 obd_data.obd_time.counter_2 += 1;
 
-                obd_data.obd3.engine_on = rx_data->engine_on;
-                obd_data.obd3.gear = rx_data->gear;
+                obd_data.obd3.engine_state =
+                        hobd_engine_state(rx_data->engine_on);
+                obd_data.obd3.transmission_state =
+                        hobd_transmission_state(rx_data->gear);
             }
         }
     }
