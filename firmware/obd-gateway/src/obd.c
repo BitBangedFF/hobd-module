@@ -38,7 +38,7 @@ typedef struct
 } obd_data_s;
 
 
-#define OBD_TIMEOUT_RX (500)
+#define OBD_TIMEOUT_RX (1000)
 
 #define UART_RX_INTERRUPT USART1_RX_vect
 #define UART_UCSRA UCSR1A
@@ -284,14 +284,25 @@ void obd_update( void )
 
 void obd_update_timeout( void )
 {
-    const uint32_t now = time_get_ms();
-
-    const uint32_t delta = time_get_delta(
-            &obd_data.obd_time.rx_time,
-            &now);
-
-    if(delta >= OBD_TIMEOUT_RX)
+    if((diagnostics_get_warn() & HOBD_HEARTBEAT_WARN_OBDBUS_RX) == 0)
     {
-        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX);
+        const uint32_t now = time_get_ms();
+
+        const uint32_t delta = time_get_delta(
+                &obd_data.obd_time.rx_time,
+                &now);
+
+        if(delta >= OBD_TIMEOUT_RX)
+        {
+            diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX);
+
+            (void) memset(&obd_data.obd1, 0, sizeof(obd_data.obd1));
+            (void) memset(&obd_data.obd2, 0, sizeof(obd_data.obd2));
+            (void) memset(&obd_data.obd3, 0, sizeof(obd_data.obd3));
+
+            obd_data.obd3.engine_state = HOBD_ENGINE_STATE_UNKNOWN;
+            obd_data.obd3.transmission_state = HOBD_TRANSMISSION_STATE_UNKNOWN;
+            obd_data.obd3.gear_position = HOBD_GEAR_POSITION_UNKNOWN;
+        }
     }
 }
