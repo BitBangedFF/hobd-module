@@ -42,6 +42,24 @@
 #define HOBD_HEARTBEAT_ERROR_OBDBUS (1 << 1)
 #define HOBD_HEARTBEAT_ERROR_CANBUS (1 << 4)
 
+#define HOBD_ENGINE_STATE_UNKNOWN (0)
+#define HOBD_ENGINE_STATE_OFF (1)
+#define HOBD_ENGINE_STATE_ON (2)
+
+#define HOBD_TRANSMISSION_STATE_UNKNOWN (0)
+#define HOBD_TRANSMISSION_STATE_KICKSTAND (1)
+#define HOBD_TRANSMISSION_STATE_GEAR (2)
+#define HOBD_TRANSMISSION_STATE_NEUTRAL (3)
+
+#define HOBD_GEAR_POSITION_UNKNOWN (0)
+#define HOBD_GEAR_POSITION_1 (1)
+#define HOBD_GEAR_POSITION_2 (2)
+#define HOBD_GEAR_POSITION_3 (3)
+#define HOBD_GEAR_POSITION_4 (4)
+#define HOBD_GEAR_POSITION_5 (5)
+#define HOBD_GEAR_POSITION_6 (6)
+#define HOBD_GEAR_POSITION_COUNT (6)
+
 
 typedef struct
 {
@@ -144,16 +162,16 @@ typedef struct
 /**
  * @brief On-board diagnostics 3 message.
  *
- * Message size (CAN frame DLC): 1 bytes
+ * Message size (CAN frame DLC): 3 bytes
  * CAN frame ID: \ref HOBD_CAN_ID_OBD3
  * Transmit rate: TODO ms
  *
  */
 typedef struct
 {
-    uint8_t engine_on : 1;
-    uint8_t gear : 4;
-    uint8_t reserved : 3;
+    uint8_t engine_state;
+    uint8_t transmission_state;
+    uint8_t gear_position;
 } hobd_obd3_s;
 
 

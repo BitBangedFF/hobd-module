@@ -87,7 +87,9 @@ int main( void )
         if(time_get_timer() != 0)
         {
             time_clear_timer();
+
             obd_update_timeout();
+
             diagnostics_update();
         }
     }

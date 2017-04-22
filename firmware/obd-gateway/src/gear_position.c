@@ -18,7 +18,7 @@
 #include <string.h>
 #include <avr/io.h>
 #include <stdint.h>
-#include <avr/pgmspace.h>
+#include <math.h>
 
 #include "board.h"
 
@@ -26,42 +26,65 @@
 #include "gear_position.h"
 
 
-// inputs(wheel_speed_kph, engine_rpm)
-// outputs(gear_position)
-// constant(gear_ratio[])
+static const float FINAL_RATIO_TOLERANCE = 1.0f;
 
-// gear ratio = engine rpm / countershaft rpm
-
-// TODO - figure out what to put in the table
-// is it really needed?
-
-// [engine_rpm][wheel_speed] = gear_position
-// [engine_rpm][wheel_speed] = ratio
-
-
-static const uint8_t TABLE[2][3] PROGMEM =
+static const float FINAL_RATIOS[] =
 {
-    {0x00, 0x01, 0x02},
-    {0x03, 0x04, 0x05}
+    33.0f,
+    30.0f,
+    14.5f,
+    12.5f,
+    9.667f,
+    7.4f
 };
+
+
+static uint8_t comparef(
+        const float a,
+        const float b,
+        const float tolerance )
+{
+    uint8_t is_within = 0;
+
+    const float diff = fabs(a - b);
+    const float a_abs = fabs(a);
+    const float b_abs = fabs(b);
+
+    const float largest = (b_abs > a_abs) ? b_abs : a_abs;
+
+    if(diff <= (largest * tolerance))
+    {
+        is_within = 1;
+    }
+
+    return is_within;
+}
 
 
 uint8_t gp_get(
         const uint16_t engine_rpm,
         const uint8_t wheel_speed )
 {
-    uint8_t gear_pos = GEAR_POSITION_UNKNOWN;
+    uint8_t gear_pos = HOBD_GEAR_POSITION_UNKNOWN;
 
-    // drive_rpm = wheel_rpm ?
-    // ratio = engine_rpm / wheel_rpm
+    if((engine_rpm != 0) && (wheel_speed != 0))
+    {
+        const float ratio = ((float) engine_rpm / (float) wheel_speed);
 
-    // for each gear:
-    //   if ratio[gear] == ratio
-    //     return gear
+        uint8_t idx;
+        for(idx = 0; (idx < HOBD_GEAR_POSITION_COUNT) && (gear_pos == HOBD_GEAR_POSITION_UNKNOWN); idx += 1)
+        {
+            const uint8_t status = comparef(
+                    ratio,
+                    FINAL_RATIOS[idx],
+                    FINAL_RATIO_TOLERANCE);
 
-
-    // byte = pgm_read_byte(&(mydata[i][j]));
-    // word = pgm_read_word(&(mydata[i][j]));
+            if(status != 0)
+            {
+                gear_pos = (idx + 1);
+            }
+        }
+    }
 
     return gear_pos;
 }
