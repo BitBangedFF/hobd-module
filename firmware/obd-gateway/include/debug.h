@@ -10,6 +10,8 @@
 
 
 #ifdef BUILD_TYPE_DEBUG
+    #include <stdio.h>
+    #include <avr/io.h>
     #include <inttypes.h>
     #include "board.h"
     #include "uart_lib.h"

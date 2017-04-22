@@ -38,6 +38,7 @@
 
 #####         Target Specific Details          #####
 #####     Customize these for your project     #####
+DEBUG=1
 
 # Name of target controller
 # (e.g. 'at90s8515', see the available avr-gcc mmcu
@@ -136,9 +137,6 @@ CFLAGS=-I. $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL) \
 	-Wa,-ahlms=$(firstword                  \
 	$(filter %.lst, $(<:.c=.lst)))
 
-# DEBUG
-CFLAGS += -DBUILD_TYPE_DEBUG
-
 # c++ specific flags
 CPPFLAGS=-fno-exceptions               \
 	-Wa,-ahlms=$(firstword         \
@@ -156,6 +154,11 @@ ASMFLAGS =-I. $(INC) -mmcu=$(MCU)        \
 # linker, -nodefaultlibs ?
 LDFLAGS=-Wl,-Map,$(TRG).map -mmcu=$(MCU) \
 	$(LIBS)
+
+ifeq ($(DEBUG), 1)
+    CFLAGS += -DBUILD_TYPE_DEBUG
+    LDFLAGS+=-Wl,-u,vfprintf -lprintf_flt
+endif
 
 ##### executables ####
 CC=avr-gcc
