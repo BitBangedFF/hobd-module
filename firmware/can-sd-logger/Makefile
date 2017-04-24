@@ -69,12 +69,20 @@ PRJSRC= ../avrcan-at90can128/bsp/src/timer8_drv.c \
 	../avrcan-at90can128/bsp/src/rtc_drv.c \
 	../avrcan-at90can128/bsp/src/can_drv.c \
 	../avrcan-at90can128/bsp/src/can_lib.c \
+	../common/fat/src/fat_access.c \
+	../common/fat/src/fat_cache.c \
+	../common/fat/src/fat_filelib.c \
+	../common/fat/src/fat_format.c \
+	../common/fat/src/fat_misc.c \
+	../common/fat/src/fat_string.c \
+	../common/fat/src/fat_table.c \
+	../common/fat/src/fat_write.c \
 	src/time.c \
 	src/canbus.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)
-INC=-Iinclude -I../common/include -I../avrcan-at90can128/bsp/include
+INC=-Iinclude -I../common/fat/include -I../common/hobd/include -I../avrcan-at90can128/bsp/include
 
 # libraries to link in (e.g. -lmylib)
 LIBS=-lm
