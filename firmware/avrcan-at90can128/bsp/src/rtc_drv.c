@@ -33,8 +33,19 @@
 
 //_____ D E C L A R A T I O N S ________________________________________________
 
-volatile uint32_t rtc_tics;
-volatile uint32_t rtc_milliseconds;
+
+// ticks
+#ifndef RTC_SW_TIMER_TICK
+#define RTC_SW_TIMER_TICK (50)
+#warning "using default RTC_SW_TIMER_TICK 50"
+#endif
+
+static volatile uint32_t rtc_tics;
+static volatile uint16_t rtc_counter;
+static volatile uint32_t rtc_seconds;
+
+static volatile uint32_t timer_counter;
+static volatile uint8_t timer_reached;
 
 BOOL rtc_running = OFF;
 
@@ -178,8 +189,11 @@ uint16_t i;
     Timer8_compare_a_it_enable();     //-- Enable Timer2 Output_Compare Interrupt
 
     //-- Time setting
-    rtc_tics         = 0;
-    rtc_milliseconds = 0;
+    rtc_tics = 0;
+    rtc_counter = 0;
+    rtc_seconds = 0;
+    timer_counter = 0;
+    timer_reached = 0;
 
     rtc_running = ON;
     enable_interrupt();
@@ -203,22 +217,53 @@ uint16_t i;
 
 ISR(TIMER2_COMP_vect)
 {
-    rtc_tics++;                     //-- Increments tics
-    rtc_milliseconds++;             //-- Increments milli seconds
+    rtc_tics += 1;
+    rtc_counter += 1;
+    timer_counter += 1;
+
+    if(timer_counter == RTC_SW_TIMER_TICK)
+    {
+        timer_reached = 1;
+        timer_counter = 0;
+    }
+
+    if(rtc_counter == 1000)
+    {
+        rtc_seconds += 1;
+        rtc_counter = 0;
+    }
 }
 
 #endif // RTC_TIMER
 
 
-
 uint32_t rtc_get_ms( void )
 {
-    uint32_t timestamp = 0;
-
-    // atomic get
     disable_interrupt();
-    timestamp = rtc_milliseconds;
+    const uint32_t timestamp = rtc_tics;
     enable_interrupt();
 
     return timestamp;
+}
+
+
+uint32_t rtc_get_seconds( void )
+{
+    disable_interrupt();
+    const uint32_t seconds = rtc_seconds;
+    enable_interrupt();
+
+    return seconds;
+}
+
+
+uint8_t rtc_timer_get( void )
+{
+    return timer_reached;
+}
+
+
+void rtc_timer_clear( void )
+{
+    timer_reached = 0;
 }
