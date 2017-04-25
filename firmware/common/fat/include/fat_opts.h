@@ -70,8 +70,6 @@
 #define FAT_SECTOR_SIZE                     512
 
 // Printf output (directory listing / debug)
-#define FAT_PRINTF(a) do {} while(0)
-
 #ifndef FAT_PRINTF
     // Don't include stdio, but there is a printf function available
     #ifdef FAT_PRINTF_NOINC_STDIO

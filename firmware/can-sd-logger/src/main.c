@@ -24,12 +24,14 @@
 #include "can_drv.h"
 #include "can_lib.h"
 
+// FAT FS library
+#include "fat_filelib.h"
+
 // project includes
 #include "debug.h"
 #include "time.h"
 #include "canbus.h"
 #include "hobd.h"
-#include "fat_filelib.h"
 
 
 #ifdef BUILD_TYPE_DEBUG

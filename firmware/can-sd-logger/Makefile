@@ -132,12 +132,13 @@ HEXFORMAT=ihex
 
 # compiler
 CFLAGS=-I. $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL) \
-	-fpack-struct -fshort-enums            \
-	-funsigned-bitfields -funsigned-char   \
+	-fpack-struct -fshort-enums \
+	-funsigned-bitfields -funsigned-char \
 	-std=gnu99 \
-	-Wall               \
 	-DBUILD_TARGET_AVR \
-	-Wa,-ahlms=$(firstword                  \
+	-DFATFS_USE_CUSTOM_OPTS_FILE \
+	-Wall               \
+	-Wa,-ahlms=$(firstword \
 	$(filter %.lst, $(<:.c=.lst)))
 
 # c++ specific flags
