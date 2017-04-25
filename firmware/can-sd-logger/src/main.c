@@ -31,6 +31,7 @@
 #include "debug.h"
 #include "time.h"
 #include "canbus.h"
+#include "sd.h"
 #include "hobd.h"
 
 
@@ -64,6 +65,7 @@ static void init( void )
 
     wdt_reset();
     canbus_init();
+    sd_init();
 
     DEBUG_PRINTF("module '%s' initialized\n", MODULE_NAME);
 }

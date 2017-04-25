@@ -69,6 +69,7 @@ PRJSRC= ../avrcan-at90can128/bsp/src/timer8_drv.c \
 	../avrcan-at90can128/bsp/src/rtc_drv.c \
 	../avrcan-at90can128/bsp/src/can_drv.c \
 	../avrcan-at90can128/bsp/src/can_lib.c \
+	../avrcan-at90can128/bsp/src/spi_lib.c \
 	../common/fat/src/fat_access.c \
 	../common/fat/src/fat_cache.c \
 	../common/fat/src/fat_filelib.c \
