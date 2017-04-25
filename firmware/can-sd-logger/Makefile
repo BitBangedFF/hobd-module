@@ -79,6 +79,7 @@ PRJSRC= ../avrcan-at90can128/bsp/src/timer8_drv.c \
 	../common/fat/src/fat_write.c \
 	src/time.c \
 	src/canbus.c \
+	src/sd.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)
