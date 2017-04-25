@@ -53,6 +53,8 @@ void sd_init( void )
     if(is_init == FALSE)
     {
         file = NULL;
+
+        (void) spi_init(MSK_SPI_CONFIG);
         fl_init();
 
         if(fl_attach_media(fat_read, fat_write) != FAT_INIT_OK)
