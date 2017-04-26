@@ -22,12 +22,13 @@
 #include "sd.h"
 
 
-#define SD_MSK_SPI_CONFIG_SLOW (SPI_MSB_FIRST | SPI_MASTER | SPI_DATA_MODE_0 | SPI_CLKIO_BY_128)
-#define SD_MSK_SPI_CONFIG_FAST (SPI_MSB_FIRST | SPI_MASTER | SPI_DATA_MODE_0 | SPI_CLKIO_BY_2)
+#define SD_MSK_SPI_CONFIG_SLOW (SPI_MSB_FIRST | SPI_MASTER | SPI_DATA_MODE_0 | ((1<<SPR1)|(1<<SPR0)))
+#define SD_MSK_SPI_CONFIG_FAST (SPI_MSB_FIRST | SPI_MASTER | SPI_DATA_MODE_0 | ((0<<SPR1)|(0<<SPR0)))
 
 #define SD_RAW_SPEC_1 (0)
 #define SD_RAW_SPEC_2 (1)
 #define SD_RAW_SPEC_SDHC (2)
+
 
 static const char FILE_NAME[] = "data.log";
 
@@ -74,13 +75,110 @@ static uint8_t send_command(
 }
 
 
+static uint8_t sd_read_block(
+        const uint32_t sector,
+        uint8_t * const buffer )
+{
+    uint8_t ret = ERR_OK;
+    uint8_t resp;
+
+    spi_enable_ss();
+
+    resp = send_command(CMD_READ_SINGLE_BLOCK, sector);
+
+    if(resp != 0)
+    {
+        spi_disable_ss();
+        ret = ERR_SD_INIT;
+    }
+
+    if(ret == ERR_OK)
+    {
+        // wait for data block (start byte 0xFE)
+        while(spi_getchar() != 0xFE);
+    }
+
+    if(ret == ERR_OK)
+    {
+        uint16_t idx;
+        for(idx = 0; idx < FAT_SECTOR_SIZE; idx += 1)
+        {
+            buffer[idx] = spi_getchar();
+        }
+
+        // read crc16
+        (void) spi_getchar();
+        (void) spi_getchar();
+    }
+
+    spi_disable_ss();
+    (void) spi_getchar();
+
+    return ret;
+}
+
+
+static uint8_t sd_write_block(
+        const uint32_t sector,
+        const uint8_t * const buffer )
+{
+    uint8_t ret = ERR_OK;
+    uint8_t resp;
+
+    spi_enable_ss();
+
+    resp = send_command(CMD_WRITE_SINGLE_BLOCK, sector);
+
+    if(resp != 0)
+    {
+        spi_disable_ss();
+        ret = ERR_SD_INIT;
+    }
+
+    if(ret == ERR_OK)
+    {
+        // send start byte
+        (void) spi_putchar(0xFE);
+
+        uint16_t idx;
+        for(idx = 0; idx < FAT_SECTOR_SIZE; idx += 1)
+        {
+            (void) spi_putchar(buffer[idx]);
+        }
+
+        // write dummy crc16
+        (void) spi_putchar(0xFF);
+        (void) spi_putchar(0xFF);
+
+        // wait while card is busy
+        while(spi_getchar() != 0xFF);
+    }
+
+    spi_disable_ss();
+    (void) spi_getchar();
+
+    return ret;
+}
+
+
 // FAT lib read callback
 static int fat_read(
         uint32_t sector,
         uint8_t *buffer,
         uint32_t sector_count )
 {
-    return 0;
+    uint8_t status = ERR_OK;
+
+    uint32_t idx;
+    for(idx = 0; (idx < sector_count) && (status == ERR_OK); idx += 1)
+    {
+        status = sd_read_block(sector, buffer);
+
+        sector += 1;
+        buffer += FAT_SECTOR_SIZE;
+    }
+
+    return (int) (status == ERR_OK);
 }
 
 
@@ -90,7 +188,18 @@ static int fat_write(
         uint8_t *buffer,
         uint32_t sector_count )
 {
-    return 0;
+    uint8_t status = ERR_OK;
+
+    uint32_t idx;
+    for(idx = 0; (idx < sector_count) && (status == ERR_OK); idx += 1)
+    {
+        status = sd_write_block(sector, buffer);
+
+        sector += 1;
+        buffer += FAT_SECTOR_SIZE;
+    }
+
+    return (int) (status == ERR_OK);
 }
 
 
@@ -109,7 +218,10 @@ void sd_init( void )
 
         // initialize SPI with lowest frequency
         // max of 400 kHz during identification mode of card
-        (void) spi_init(SD_MSK_SPI_CONFIG_SLOW);
+        Spi_init_bus( ((uint8_t) (SD_MSK_SPI_CONFIG_SLOW & MSK_SPI_MASTER)));
+        SPCR = SD_MSK_SPI_CONFIG_SLOW;
+        SPSR &= ~(1 << SPI2X);
+        spi_enable();
         spi_disable_ss();
 
         // card needs 74 cycles minimum to start up
@@ -235,9 +347,12 @@ void sd_init( void )
         if(status == ERR_OK)
         {
             spi_disable_ss();
-            (void) spi_init(SD_MSK_SPI_CONFIG_FAST);
-            spi_disable_ss();
+            SPCR = SD_MSK_SPI_CONFIG_FAST;
+            SPSR |= (1 << SPI2X);
+            spi_enable();
         }
+
+        spi_disable_ss();
 
         if(status == ERR_OK)
         {

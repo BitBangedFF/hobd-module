@@ -70,6 +70,9 @@
 #define Spi_select_master_mode()  (SPCR |=  (1<<MSTR))
 #define Spi_select_slave_mode()   (SPCR &= ~(1<<MSTR))
 
+#define spi_enable() Spi_enable()
+#define spi_disable() Spi_disable()
+
 #define Spi_init_config(config)   { Spi_init_bus( (((uint8_t)config) & MSK_SPI_MASTER) ); \
                                     SPCR &= ~MSK_SPI_CONFIG;                       \
                                     SPCR |= (((uint8_t)config) & MSK_SPI_CONFIG);       \
