@@ -18,6 +18,7 @@
 
 #include "error.h"
 #include "debug.h"
+#include "sd_cmd.h"
 #include "sd.h"
 
 
@@ -26,6 +27,44 @@ static const char FILE_NAME[] = "data.log";
 
 static BOOL is_init = FALSE;
 static FL_FILE *file = NULL;
+
+
+static uint8_t send_command(
+        const uint8_t cmd,
+        const uint32_t data )
+{
+    uint8_t resp;
+
+    // wait some clock cycles
+    (void) spi_getchar();
+
+    (void) spi_putchar(0x40 | cmd);
+    (void) spi_putchar((data >> 24) & 0xFF);
+    (void) spi_putchar((data >> 16) & 0xFF);
+    (void) spi_putchar((data >> 8) & 0xFF);
+    (void) spi_putchar((data >> 0) & 0xFF);
+
+    if(cmd == CMD_GO_IDLE_STATE)
+    {
+        (void) spi_putchar(0x95);
+    }
+    else if(cmd == CMD_SEND_IF_COND)
+    {
+        (void) spi_putchar(0x87);
+    }
+    else
+    {
+        (void) spi_putchar(0xFF);
+    }
+
+    uint8_t idx;
+    for(idx = 0, resp = 0xFF; (idx < 10) && (resp == 0xFF); idx += 1)
+    {
+        resp = spi_getchar();
+    }
+
+    return resp;
+}
 
 
 // FAT lib read callback
@@ -55,6 +94,10 @@ void sd_init( void )
         file = NULL;
 
         (void) spi_init(MSK_SPI_CONFIG);
+        Spi_disable_ss();
+
+
+
         fl_init();
 
         if(fl_attach_media(fat_read, fat_write) != FAT_INIT_OK)
