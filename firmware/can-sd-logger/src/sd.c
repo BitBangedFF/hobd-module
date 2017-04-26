@@ -22,6 +22,13 @@
 #include "sd.h"
 
 
+#define SD_MSK_SPI_CONFIG_SLOW (SPI_MSB_FIRST | SPI_MASTER | SPI_DATA_MODE_0 | SPI_CLKIO_BY_128)
+#define SD_MSK_SPI_CONFIG_FAST (SPI_MSB_FIRST | SPI_MASTER | SPI_DATA_MODE_0 | SPI_CLKIO_BY_2)
+
+#define SD_RAW_SPEC_1 (0)
+#define SD_RAW_SPEC_2 (1)
+#define SD_RAW_SPEC_SDHC (2)
+
 static const char FILE_NAME[] = "data.log";
 
 
@@ -91,23 +98,160 @@ void sd_init( void )
 {
     if(is_init == FALSE)
     {
+        uint8_t status = ERR_OK;
+        uint8_t card_type = 0;
+        uint16_t idx;
+
         file = NULL;
 
-        (void) spi_init(MSK_SPI_CONFIG);
-        Spi_disable_ss();
+        spi_init_ss();
+        spi_disable_ss();
 
+        // initialize SPI with lowest frequency
+        // max of 400 kHz during identification mode of card
+        (void) spi_init(SD_MSK_SPI_CONFIG_SLOW);
+        spi_disable_ss();
 
-
-        fl_init();
-
-        if(fl_attach_media(fat_read, fat_write) != FAT_INIT_OK)
+        // card needs 74 cycles minimum to start up
+        for(idx = 0; idx < 10; idx += 1)
         {
-            DEBUG_PUTS("failed to attach FAT IO\n");
-            fl_shutdown();
+            (void) spi_getchar();
         }
-        else
+
+        spi_enable_ss();
+
+        // reset the card
+        uint8_t resp = 0x00;
+        for(idx = 0; resp != (1 << R1_IDLE_STATE); idx += 1)
         {
-            is_init = TRUE;
+            resp = send_command(CMD_GO_IDLE_STATE, 0);
+
+            if(idx == 0x01FF)
+            {
+                spi_disable_ss();
+                status = ERR_SD_INIT;
+                DEBUG_PUTS("failed to reset SD card\n");
+            }
+        }
+
+        if(status == ERR_OK)
+        {
+            // check for version of SD card specification
+            resp = send_command(CMD_SEND_IF_COND, 0x100 | 0xAA);
+
+            if((resp & (1 << R1_ILL_COMMAND)) == 0)
+            {
+                (void) spi_getchar();
+                (void) spi_getchar();
+
+                if((spi_getchar() & 0x01) == 0)
+                {
+                    spi_disable_ss();
+                    status = ERR_SD_INIT;
+                    DEBUG_PUTS("SD card operation voltage range doesn't match\n");
+                }
+
+                if(status == ERR_OK)
+                {
+                    if(spi_getchar() != 0xAA)
+                    {
+                        spi_disable_ss();
+                        status = ERR_SD_INIT;
+                        DEBUG_PUTS("SD card returned invalid pattern\n");
+                    }
+                }
+
+                if(status == ERR_OK)
+                {
+                    card_type |= (1 << SD_RAW_SPEC_2);
+                }
+            }
+            else
+            {
+                spi_disable_ss();
+                status = ERR_SD_INIT;
+                DEBUG_PUTS("unsupported SD card type\n");
+            }
+        }
+
+        if(status == ERR_OK)
+        {
+            // wait for card to get ready
+            for(idx = 0, resp = 0x00; status == ERR_OK; idx += 1)
+            {
+                (void) send_command(CMD_APP, 0);
+                resp = send_command(CMD_SD_SEND_OP_COND, 0x40000000);
+
+                if((resp & (1 << R1_IDLE_STATE)) == 0)
+                {
+                    break;
+                }
+
+                if(idx == 0x7FFF)
+                {
+                    spi_disable_ss();
+                    status = ERR_SD_INIT;
+                    DEBUG_PUTS("failed to wait for SD card\n");
+                }
+            }
+        }
+
+        if(status == ERR_OK)
+        {
+            if((card_type & (1 << SD_RAW_SPEC_2)) != 0)
+            {
+                if(send_command(CMD_READ_OCR, 0) != 0)
+                {
+                    spi_disable_ss();
+                    status = ERR_SD_INIT;
+                    DEBUG_PUTS("failed to send SD OCR command\n");
+                }
+                else
+                {
+                    if((spi_getchar() & 0x40) != 0)
+                    {
+                        card_type |= (1 << SD_RAW_SPEC_SDHC);
+                    }
+
+                    (void) spi_getchar();
+                    (void) spi_getchar();
+                    (void) spi_getchar();
+                }
+            }
+        }
+
+        // set block size to 512 bytes
+        if(status == ERR_OK)
+        {
+            if(send_command(CMD_SET_BLOCKLEN, 512) != 0)
+            {
+                spi_disable_ss();
+                status = ERR_SD_INIT;
+                DEBUG_PUTS("failed to set block size\n");
+            }
+        }
+
+        // switch to highest SPI frequency possible
+        if(status == ERR_OK)
+        {
+            spi_disable_ss();
+            (void) spi_init(SD_MSK_SPI_CONFIG_FAST);
+            spi_disable_ss();
+        }
+
+        if(status == ERR_OK)
+        {
+            fl_init();
+
+            if(fl_attach_media(fat_read, fat_write) != FAT_INIT_OK)
+            {
+                DEBUG_PUTS("failed to attach FAT IO\n");
+                fl_shutdown();
+            }
+            else
+            {
+                is_init = TRUE;
+            }
         }
     }
 }

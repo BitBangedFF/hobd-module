@@ -100,6 +100,11 @@
 #define Spi_init_ss()             (DDRB  |=  (1<<DDB0))  // -- Can be user re-defined
 #define Spi_disable_ss()          (PORTB |=  (1<<PB0))   // -- Can be user re-defined
 #define Spi_enable_ss()           (PORTB &= ~(1<<DDB0))  // -- Can be user re-defined
+
+#define spi_init_ss() Spi_init_ss()
+#define spi_disable_ss() Spi_disable_ss()
+#define spi_enable_ss() Spi_enable_ss()
+
 // --
 
 #define Spi_write_dummy()         { (SPDR = 0x00); Spi_wait_spif(); }

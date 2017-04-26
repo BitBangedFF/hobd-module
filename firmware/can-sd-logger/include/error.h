@@ -14,6 +14,7 @@
 #define ERR_CANBUS_TX (2)
 #define ERR_NO_DATA (10)
 #define ERR_BAD_CHECKSUM (11)
+#define ERR_SD_INIT (14)
 
 
 #endif // ERROR_H
