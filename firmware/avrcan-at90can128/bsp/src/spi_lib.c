@@ -86,6 +86,7 @@ uint8_t spi_putchar (uint8_t ch)
 {
     Spi_send_byte(ch);
     Spi_wait_spif();
+    SPSR &= ~(1 << SPIF);
     return ch;
 }
 
@@ -105,8 +106,10 @@ uint8_t spi_getchar (void)
 {
     uint8_t ch;
 
+    Spi_send_byte(0xFF);
     Spi_wait_spif();
     ch = Spi_get_byte();
+    SPSR &= ~(1 << SPIF);
     return ch;
 }
 
