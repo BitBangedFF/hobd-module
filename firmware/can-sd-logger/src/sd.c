@@ -30,7 +30,7 @@
 #define SD_RAW_SPEC_SDHC (2)
 
 
-static const char FILE_NAME[] = "data.log";
+static const char FILE_NAME[] = "/data.log";
 
 
 static BOOL is_init = FALSE;
@@ -242,7 +242,6 @@ void sd_init( void )
             {
                 spi_disable_ss();
                 status = ERR_SD_INIT;
-                DEBUG_PUTS("failed to reset SD card\n");
             }
         }
 
@@ -260,7 +259,6 @@ void sd_init( void )
                 {
                     spi_disable_ss();
                     status = ERR_SD_INIT;
-                    DEBUG_PUTS("SD card operation voltage range doesn't match\n");
                 }
 
                 if(status == ERR_OK)
@@ -269,7 +267,6 @@ void sd_init( void )
                     {
                         spi_disable_ss();
                         status = ERR_SD_INIT;
-                        DEBUG_PUTS("SD card returned invalid pattern\n");
                     }
                 }
 
@@ -282,7 +279,6 @@ void sd_init( void )
             {
                 spi_disable_ss();
                 status = ERR_SD_INIT;
-                DEBUG_PUTS("unsupported SD card type\n");
             }
         }
 
@@ -303,7 +299,6 @@ void sd_init( void )
                 {
                     spi_disable_ss();
                     status = ERR_SD_INIT;
-                    DEBUG_PUTS("failed to wait for SD card\n");
                 }
             }
         }
@@ -316,7 +311,6 @@ void sd_init( void )
                 {
                     spi_disable_ss();
                     status = ERR_SD_INIT;
-                    DEBUG_PUTS("failed to send SD OCR command\n");
                 }
                 else
                 {
@@ -339,7 +333,6 @@ void sd_init( void )
             {
                 spi_disable_ss();
                 status = ERR_SD_INIT;
-                DEBUG_PUTS("failed to set block size\n");
             }
         }
 
@@ -367,6 +360,10 @@ void sd_init( void )
             {
                 is_init = TRUE;
             }
+        }
+        else
+        {
+            DEBUG_PUTS("failed to init SD card\n");
         }
     }
 }
