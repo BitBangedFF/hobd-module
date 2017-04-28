@@ -52,7 +52,7 @@ static void init( void )
     led_init();
     led_off();
 
-    wdt_enable(WDTO_120MS);
+    wdt_enable(WDTO_500MS);
     wdt_reset();
 
     rtc_int_init();
@@ -82,6 +82,7 @@ int main( void )
         if(time_get_timer() != 0)
         {
             time_clear_timer();
+            sd_flush();
         }
     }
 

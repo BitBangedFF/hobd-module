@@ -30,4 +30,8 @@ void sd_write(
         const uint16_t count );
 
 
+void sd_puts(
+        const char * const data );
+
+
 #endif	/* TIME_H */

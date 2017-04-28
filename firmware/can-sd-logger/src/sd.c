@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <avr/io.h>
+#include <avr/wdt.h>
 #include <stdint.h>
 
 #include "board.h"
@@ -223,6 +224,7 @@ void sd_init( void )
         SPSR &= ~(1 << SPI2X);
         spi_enable();
         spi_disable_ss();
+        wdt_reset();
 
         // card needs 74 cycles minimum to start up
         for(idx = 0; idx < 10; idx += 1)
@@ -231,6 +233,7 @@ void sd_init( void )
         }
 
         spi_enable_ss();
+        wdt_reset();
 
         // reset the card
         uint8_t resp = 0x00;
@@ -244,6 +247,8 @@ void sd_init( void )
                 status = ERR_SD_INIT;
             }
         }
+
+        wdt_reset();
 
         if(status == ERR_OK)
         {
@@ -281,6 +286,8 @@ void sd_init( void )
                 status = ERR_SD_INIT;
             }
         }
+
+        wdt_reset();
 
         if(status == ERR_OK)
         {
@@ -346,6 +353,7 @@ void sd_init( void )
         }
 
         spi_disable_ss();
+        wdt_reset();
 
         if(status == ERR_OK)
         {
@@ -353,7 +361,8 @@ void sd_init( void )
 
             if(fl_attach_media(fat_read, fat_write) != FAT_INIT_OK)
             {
-                DEBUG_PUTS("failed to attach FAT IO\n");
+                DEBUG_PUTS(PSTR("failed to attach FAT IO\n"));
+                status = ERR_SD_FS;
                 fl_shutdown();
             }
             else
@@ -363,7 +372,7 @@ void sd_init( void )
         }
         else
         {
-            DEBUG_PUTS("failed to init SD card\n");
+            DEBUG_PUTS(PSTR("failed to init SD card\n"));
         }
     }
 }
@@ -377,7 +386,7 @@ void sd_open( void )
 
         if(file == NULL)
         {
-            DEBUG_PUTS("failed to create log file\n");
+            DEBUG_PUTS(PSTR("failed to create log file\n"));
         }
     }
 }
@@ -422,7 +431,26 @@ void sd_write(
 #warning "TODO - handle returns"
             if( bytes_written <= 0 )
             {
-                DEBUG_PUTS("failed to write SD data\n");
+                DEBUG_PUTS(PSTR("failed to write SD data\n"));
+            }
+        }
+    }
+}
+
+
+void sd_puts(
+        const char * const data )
+{
+    if(is_init == TRUE)
+    {
+        if(file != NULL)
+        {
+            const int bytes_written = fl_fputs(data, file);
+
+#warning "TODO - handle returns"
+            if( bytes_written <= 0 )
+            {
+                DEBUG_PUTS(PSTR("failed to write SD data\n"));
             }
         }
     }

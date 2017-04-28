@@ -84,7 +84,7 @@ PRJSRC= ../avrcan-at90can128/bsp/src/timer8_drv.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)
-INC=-Iinclude -I../common/fat/include -I../common/hobd/include -I../avrcan-at90can128/bsp/include
+INC=-Iinclude -isystem ../common/fat/include -I../common/hobd/include -I../avrcan-at90can128/bsp/include
 
 # libraries to link in (e.g. -lmylib)
 LIBS=-lm

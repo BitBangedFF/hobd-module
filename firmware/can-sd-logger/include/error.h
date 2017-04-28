@@ -15,6 +15,7 @@
 #define ERR_NO_DATA (10)
 #define ERR_BAD_CHECKSUM (11)
 #define ERR_SD_INIT (14)
+#define ERR_SD_FS (15)
 
 
 #endif // ERROR_H
