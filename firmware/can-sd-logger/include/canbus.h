@@ -21,4 +21,10 @@ uint8_t canbus_send(
         const uint8_t * const data );
 
 
+uint8_t canbus_recv(
+        uint16_t * const id,
+        uint8_t * const dlc,
+        uint8_t * const data );
+
+
 #endif	/* CAN_H */

@@ -12,6 +12,7 @@
 #define ERR_OK (0)
 #define ERR_CANBUS_INIT (1)
 #define ERR_CANBUS_TX (2)
+#define ERR_CANBUS_RX (3)
 #define ERR_NO_DATA (10)
 #define ERR_BAD_CHECKSUM (11)
 #define ERR_SD_INIT (14)
