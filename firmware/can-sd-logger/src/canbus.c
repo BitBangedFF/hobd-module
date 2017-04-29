@@ -38,7 +38,7 @@ static void cmd_rx(
     rx_cmd.dlc = dlc;
     rx_cmd.pt_data = (uint8_t*) data_buffer;
 
-    rx_cmd.cmd = CMD_TX_DATA;
+    rx_cmd.cmd = CMD_RX;
 
     // send the data to an available MOB
     uint8_t status = CAN_STATUS_ERROR;
@@ -52,6 +52,7 @@ static void cmd_rx(
 
 void canbus_init( void )
 {
+    memset(&rx_cmd, 0, sizeof(rx_cmd));
     clear_rx();
 
     // wait for CAN to initialize or wdt will reset
@@ -129,7 +130,7 @@ uint8_t canbus_recv(
     else if(status == CAN_STATUS_COMPLETED)
     {
         *id = (uint16_t) rx_cmd.id.std;
-        (*dlc) = (uint8_t) rx_cmd.dlc;
+        *dlc = (uint8_t) rx_cmd.dlc;
 
         clear_rx();
         cmd_rx(*dlc, data);

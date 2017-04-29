@@ -382,7 +382,7 @@ void sd_open( void )
 {
     if(is_init == TRUE)
     {
-        file = fl_fopen(FILE_NAME, "wb");
+        file = fl_fopen(FILE_NAME, "ab");
 
         if(file == NULL)
         {
