@@ -20,6 +20,7 @@
 #include "error.h"
 #include "debug.h"
 #include "sd_cmd.h"
+#include "sd_protocol.h"
 #include "sd.h"
 
 
@@ -387,6 +388,15 @@ void sd_open( void )
         if(file == NULL)
         {
             DEBUG_PUTS(PSTR("failed to create log file\n"));
+        }
+        else
+        {
+            const uint32_t file_start_word = SD_FILE_START_WORD;
+
+            sd_write(
+                    (const uint8_t*) &file_start_word,
+                    sizeof(file_start_word),
+                    1);
         }
     }
 }

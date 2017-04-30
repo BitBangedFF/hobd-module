@@ -34,4 +34,4 @@ void sd_puts(
         const char * const data );
 
 
-#endif	/* TIME_H */
+#endif	/* SD_H */
