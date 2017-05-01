@@ -28,13 +28,13 @@ typedef struct
     uint8_t preamble;
     uint8_t type;
     uint8_t size;
-} sd_msg_header_s;
+} __attribute__((packed)) sd_msg_header_s;
 
 typedef struct
 {
     sd_msg_header_s header;
     uint8_t data[0];
-} sd_msg_s;
+} __attribute__((packed)) sd_msg_s;
 
 typedef struct
 {
@@ -42,13 +42,13 @@ typedef struct
     uint16_t id;
     uint8_t dlc;
     uint8_t data[8];
-} sd_can_frame_s;
+} __attribute__((packed)) sd_can_frame_s;
 
 typedef struct
 {
     sd_msg_header_s header;
     sd_can_frame_s frame;
-} sd_msg_can_frame_s;
+} __attribute__((packed)) sd_msg_can_frame_s;
 
 
 #endif	/* SD_PROTOCOL_H */
