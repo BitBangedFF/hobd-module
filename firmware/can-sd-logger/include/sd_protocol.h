@@ -12,9 +12,13 @@
 #include <stdint.h>
 
 
-#define SD_MSG_HEADER_SIZE (4)
+#define SD_MSG_HEADER_SIZE (3)
 
 #define SD_MSG_PREAMBLE (0xAB)
+
+#define SD_MSG_DATA_SIZE_MAX (255)
+
+#define SD_MSG_SIZE_MAX (SD_MSG_HEADER_SIZE + SD_MSG_DATA_SIZE_MAX)
 
 #define SD_FILE_START_WORD (0xFF0101AB)
 
