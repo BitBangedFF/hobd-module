@@ -18,6 +18,16 @@
 #define ERR_FREAD (1)
 
 
+typedef struct
+{
+    unsigned long iter;
+    unsigned long valid_msg_cnt;
+    unsigned long invalid_msg_cnt;
+    unsigned long out_of_seq_cnt;
+//    unsigned long missing_id_cnt_array[6];
+} stats_s;
+
+
 static int read_header(
         FILE * const stream,
         sd_msg_header_s * const header )
@@ -79,7 +89,8 @@ static void print_payload(
     }
     else if(msg->header.type == SD_MSG_TYPE_FILE_START)
     {
-        printf("  FILE START\n");
+        printf("  FILE START - 0x%02X\n",
+                (unsigned int) msg->data[0]);
     }
     else if(msg->header.type == SD_MSG_TYPE_CAN_FRAME)
     {
@@ -115,9 +126,26 @@ static void print_payload(
 }
 
 
+static void print_stats( const stats_s * const stats )
+{
+    printf("\n");
+    printf("stats\n");
+
+    printf("iterations '%lu'\n", stats->iter);
+    printf("valid messages '%lu'\n", stats->valid_msg_cnt);
+    printf("invalid messages '%lu'\n", stats->invalid_msg_cnt);
+    printf("out-of-sequence messages '%lu'\n", stats->out_of_seq_cnt);
+
+    printf("\n");
+}
+
+
 int main( int argc, char **argv )
 {
+    stats_s stats;
     char file_path[512];
+
+    (void) memset(&stats, 0, sizeof(stats));
 
     if((argc > 1) && (strlen(argv[1]) > 0))
     {
@@ -135,7 +163,8 @@ int main( int argc, char **argv )
         return EXIT_FAILURE;
     }
 
-    while(1)
+    unsigned int do_loop = 1;
+    while(do_loop != 0)
     {
         uint8_t msg_buffer[SD_MSG_SIZE_MAX];
 
@@ -149,30 +178,74 @@ int main( int argc, char **argv )
         if(header_status != ERR_NONE)
         {
             printf("error - read_header failed '%d'\n", header_status);
-            (void) fclose(file);
-            return EXIT_FAILURE;
-        }
+            do_loop = 0;
 
-        const int payload_status = read_payload(
-                file,
-                msg->header.size,
-                msg->data);
-        if(payload_status != ERR_NONE)
+            if(feof(file) == 0)
+            {
+                stats.invalid_msg_cnt += 1;
+            }
+        }
+        else
         {
-            printf("error - read_payload failed '%d'\n", payload_status);
-            (void) fclose(file);
-            return EXIT_FAILURE;
+            if(msg->header.preamble != SD_MSG_PREAMBLE)
+            {
+                printf("error - invalid preamble 0x%02X\n",
+                        (unsigned int) msg->header.preamble);
+                do_loop = 0;
+                stats.invalid_msg_cnt += 1;
+            }
+
+            print_header(&msg->header);
         }
 
-        print_header(&msg->header);
-        print_payload(msg);
+        if((header_status == ERR_NONE) && (do_loop != 0))
+        {
+            const int payload_status = read_payload(
+                    file,
+                    msg->header.size,
+                    msg->data);
+            if(payload_status != ERR_NONE)
+            {
+                printf("error - read_payload failed '%d'\n", payload_status);
+                do_loop = 0;
+                stats.invalid_msg_cnt += 1;
+            }
+            else
+            {
+                print_payload(msg);
+                stats.valid_msg_cnt += 1;
+            }
+        }
+
         printf("\n");
+
+        if(feof(file) != 0)
+        {
+            printf("\n*** EOF ***\n\n");
+            do_loop = 0;
+        }
+
+        if(stats.iter == 0)
+        {
+            const uint32_t expected = SD_FILE_START_WORD;
+    
+            if(memcmp(&expected, msg_buffer, sizeof(expected)) != 0)
+            {
+                printf("error - missing expect start-of-file\n");
+                do_loop = 0;
+                stats.invalid_msg_cnt += 1;
+            }
+        }
+
+        stats.iter += 1;
     }
 
     if(file != NULL)
     {
         (void) fclose(file);
     }
+
+    print_stats(&stats);
 
     return EXIT_SUCCESS;
 }
