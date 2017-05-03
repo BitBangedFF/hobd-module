@@ -20,12 +20,12 @@
 // bits 0:5 set
 #define RX_BITS_ALL_SET (0x3F)
 
-#define CAN_FRAME_25H (0)
-#define CAN_FRAME_80H (1)
-#define CAN_FRAME_81H (2)
-#define CAN_FRAME_82H (3)
-#define CAN_FRAME_83H (4)
-#define CAN_FRAME_84H (5)
+#define CAN_INDEX_25H (0)
+#define CAN_INDEX_80H (1)
+#define CAN_INDEX_81H (2)
+#define CAN_INDEX_82H (3)
+#define CAN_INDEX_83H (4)
+#define CAN_INDEX_84H (5)
 
 #define CAN_FRAME_COUNT (6)
 
@@ -35,9 +35,12 @@ typedef struct
     unsigned long iter;
     unsigned long valid_msg_cnt;
     unsigned long invalid_msg_cnt;
+    unsigned long valid_can_frame_cnt;
     unsigned long out_of_seq_cnt;
+    unsigned long missing_cnt;
     uint8_t rx_bits;
     uint16_t last_id;
+    unsigned long local_cnt;
     sd_can_frame_s can_frames[CAN_FRAME_COUNT];
 } stats_s;
 
@@ -49,27 +52,27 @@ static unsigned long can_id_to_index(
 
     if(id == 0x25)
     {
-        index = CAN_FRAME_25H;
+        index = CAN_INDEX_25H;
     }
     else if(id == 0x80)
     {
-        index = CAN_FRAME_80H;
+        index = CAN_INDEX_80H;
     }
     else if(id == 0x81)
     {
-        index = CAN_FRAME_81H;
+        index = CAN_INDEX_81H;
     }
     else if(id == 0x82)
     {
-        index = CAN_FRAME_82H;
+        index = CAN_INDEX_82H;
     }
     else if(id == 0x83)
     {
-        index = CAN_FRAME_83H;
+        index = CAN_INDEX_83H;
     }
     else if(id == 0x84)
     {
-        index = CAN_FRAME_84H;
+        index = CAN_INDEX_84H;
     }
     else
     {
@@ -190,26 +193,87 @@ static void update_stats(
 
     (void) memcpy(&stats->can_frames[index], can_frame, sizeof(*can_frame));
 
-    if(index == CAN_FRAME_25H)
+    if(index == CAN_INDEX_25H)
     {
+        if(stats->valid_can_frame_cnt >= CAN_FRAME_COUNT)
+        {
+            if(stats->rx_bits != RX_BITS_ALL_SET)
+            {
+                stats->missing_cnt += 1;
+                printf("warn - missing\n");
+            }
+        }
+
         stats->rx_bits = 0;
+        stats->local_cnt = 0;
     }
 
     stats->rx_bits |= (uint8_t) (1 << index);
 
+    if(stats->local_cnt >= (CAN_FRAME_COUNT - 1))
+    {
+        if(stats->rx_bits != RX_BITS_ALL_SET)
+        {
+            stats->missing_cnt += 1;
+            printf("warn - missing\n");
+        }
+    }
+
+    if(stats->last_id != 0)
+    {
+        if(index != CAN_INDEX_25H)
+        {
+            if(index != (can_id_to_index(stats->last_id) + 1))
+            {
+                stats->out_of_seq_cnt += 1;
+                printf("warn - out-of-sequence\n");
+            }
+        }
+        else
+        {
+            if(can_id_to_index(stats->last_id) != CAN_INDEX_84H)
+            {
+                stats->out_of_seq_cnt += 1;
+                printf("warn - out-of-sequence\n");
+            }
+        }
+    }
+
     stats->last_id = can_frame->id;
+
+    stats->local_cnt += 1;
+
+    stats->valid_can_frame_cnt += 1;
 }
 
 
 static void print_stats( const stats_s * const stats )
 {
     printf("\n");
-    printf("stats\n");
+    printf("--------- stats ---------\n");
+
+    double out_of_seq_percent = 0.0;
+    double missing_percent = 0.0;
+
+    if(stats->valid_can_frame_cnt != 0)
+    {
+        out_of_seq_percent =
+                (double) stats->out_of_seq_cnt / (double) stats->valid_can_frame_cnt;
+
+        missing_percent =
+                (double) stats->missing_cnt / (double) stats->valid_can_frame_cnt;
+    }
 
     printf("iterations '%lu'\n", stats->iter);
     printf("valid messages '%lu'\n", stats->valid_msg_cnt);
     printf("invalid messages '%lu'\n", stats->invalid_msg_cnt);
-    printf("out-of-sequence messages '%lu'\n", stats->out_of_seq_cnt);
+    printf("  valid CAN messages '%lu'\n", stats->valid_can_frame_cnt);
+    printf("  out-of-sequence messages '%lu' - %.2f%% error\n",
+            stats->out_of_seq_cnt,
+            out_of_seq_percent * 100.0);
+    printf("  missing messages '%lu' - %.2f%% error\n",
+            stats->missing_cnt,
+            missing_percent * 100.0);
 
     printf("\n");
 }
