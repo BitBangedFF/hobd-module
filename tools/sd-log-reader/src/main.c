@@ -17,6 +17,18 @@
 #define ERR_NONE (0)
 #define ERR_FREAD (1)
 
+// bits 0:5 set
+#define RX_BITS_ALL_SET (0x3F)
+
+#define CAN_FRAME_25H (0)
+#define CAN_FRAME_80H (1)
+#define CAN_FRAME_81H (2)
+#define CAN_FRAME_82H (3)
+#define CAN_FRAME_83H (4)
+#define CAN_FRAME_84H (5)
+
+#define CAN_FRAME_COUNT (6)
+
 
 typedef struct
 {
@@ -24,8 +36,52 @@ typedef struct
     unsigned long valid_msg_cnt;
     unsigned long invalid_msg_cnt;
     unsigned long out_of_seq_cnt;
-//    unsigned long missing_id_cnt_array[6];
+    uint8_t rx_bits;
+    uint16_t last_id;
+    sd_can_frame_s can_frames[CAN_FRAME_COUNT];
 } stats_s;
+
+
+static unsigned long can_id_to_index(
+        const uint16_t id )
+{
+    unsigned long index;
+
+    if(id == 0x25)
+    {
+        index = CAN_FRAME_25H;
+    }
+    else if(id == 0x80)
+    {
+        index = CAN_FRAME_80H;
+    }
+    else if(id == 0x81)
+    {
+        index = CAN_FRAME_81H;
+    }
+    else if(id == 0x82)
+    {
+        index = CAN_FRAME_82H;
+    }
+    else if(id == 0x83)
+    {
+        index = CAN_FRAME_83H;
+    }
+    else if(id == 0x84)
+    {
+        index = CAN_FRAME_84H;
+    }
+    else
+    {
+        index = 0;
+        printf("error - invalid CAN ID 0x%02X (%u)\n",
+                (unsigned int) id,
+                (unsigned int) id);
+        exit(1);
+    }
+
+    return index;
+}
 
 
 static int read_header(
@@ -126,6 +182,25 @@ static void print_payload(
 }
 
 
+static void update_stats(
+        const sd_can_frame_s * const can_frame,
+        stats_s * const stats )
+{
+    const unsigned long index = can_id_to_index(can_frame->id);
+
+    (void) memcpy(&stats->can_frames[index], can_frame, sizeof(*can_frame));
+
+    if(index == CAN_FRAME_25H)
+    {
+        stats->rx_bits = 0;
+    }
+
+    stats->rx_bits |= (uint8_t) (1 << index);
+
+    stats->last_id = can_frame->id;
+}
+
+
 static void print_stats( const stats_s * const stats )
 {
     printf("\n");
@@ -219,6 +294,17 @@ int main( int argc, char **argv )
 
         printf("\n");
 
+        if(do_loop != 0)
+        {
+            if(msg->header.type == SD_MSG_TYPE_CAN_FRAME)
+            {
+                const sd_can_frame_s * const can_frame =
+                        (const sd_can_frame_s*) msg->data;
+
+                update_stats(can_frame, &stats);
+            }
+        }
+
         if(feof(file) != 0)
         {
             printf("\n*** EOF ***\n\n");
@@ -228,12 +314,25 @@ int main( int argc, char **argv )
         if(stats.iter == 0)
         {
             const uint32_t expected = SD_FILE_START_WORD;
-    
+
             if(memcmp(&expected, msg_buffer, sizeof(expected)) != 0)
             {
                 printf("error - missing expect start-of-file\n");
                 do_loop = 0;
                 stats.invalid_msg_cnt += 1;
+            }
+        }
+        else
+        {
+            if(msg->header.type == SD_MSG_TYPE_FILE_START)
+            {
+                const uint32_t expected = SD_FILE_START_WORD;
+
+                if(memcmp(&expected, msg_buffer, sizeof(expected)) == 0)
+                {
+                    printf("warn - stopping on start-of-file at index %lu\n", stats.iter);
+                    do_loop = 0;
+                }
             }
         }
 
