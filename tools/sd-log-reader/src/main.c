@@ -133,6 +133,7 @@ static int read_payload(
 static void print_header(
         const sd_msg_header_s * const header )
 {
+    printf("\n");
     printf("preamble '0x%02X'\n", (unsigned int) header->preamble);
     printf("type '0x%02X'\n", (unsigned int) header->type);
     printf("size '%u'\n", (unsigned int) header->size);
@@ -283,6 +284,7 @@ int main( int argc, char **argv )
 {
     stats_s stats;
     char file_path[512];
+    unsigned int verbose;
 
     (void) memset(&stats, 0, sizeof(stats));
 
@@ -293,6 +295,15 @@ int main( int argc, char **argv )
     else
     {
         (void) strncpy(file_path, "data.log", sizeof(file_path));
+    }
+
+    verbose = 0;
+    if((argc > 2) && (strlen(argv[2]) > 0))
+    {
+        if(strcmp(argv[2], "-v") == 0)
+        {
+            verbose = 1;
+        }
     }
 
     FILE * const file = fopen(file_path, "rb");
@@ -334,7 +345,10 @@ int main( int argc, char **argv )
                 stats.invalid_msg_cnt += 1;
             }
 
-            print_header(&msg->header);
+            if(verbose != 0)
+            {
+                print_header(&msg->header);
+            }
         }
 
         if((header_status == ERR_NONE) && (do_loop != 0))
@@ -351,12 +365,14 @@ int main( int argc, char **argv )
             }
             else
             {
-                print_payload(msg);
+                if(verbose != 0)
+                {
+                    print_payload(msg);
+                }
+
                 stats.valid_msg_cnt += 1;
             }
         }
-
-        printf("\n");
 
         if(do_loop != 0)
         {
