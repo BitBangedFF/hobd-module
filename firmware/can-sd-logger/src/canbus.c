@@ -19,7 +19,7 @@
 
 
 // 15 MOBs available
-#define RX_MOB_CNT (2)
+#define RX_MOB_CNT (6)
 
 
 typedef struct

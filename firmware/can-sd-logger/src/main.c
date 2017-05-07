@@ -129,8 +129,6 @@ int main( void )
         if(time_get_timer() != 0)
         {
             time_clear_timer();
-            //sd_flush();
-#warning "TESTING sd_flush() disabled"
         }
     }
 

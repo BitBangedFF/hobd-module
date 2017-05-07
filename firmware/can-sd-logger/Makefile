@@ -38,7 +38,7 @@
 
 #####         Target Specific Details          #####
 #####     Customize these for your project     #####
-DEBUG=1
+DEBUG=0
 
 # Name of target controller
 # (e.g. 'at90s8515', see the available avr-gcc mmcu
