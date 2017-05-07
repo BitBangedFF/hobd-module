@@ -19,21 +19,41 @@
 #include "diagnostics.h"
 
 
-typedef enum
-{
-    LED_STATE_OFF,
-    LED_STATE_BLINK,
-    LED_STATE_ON
-} led_state_kind;
-
-
 static hobd_heartbeat_s hobd_heartbeat_data;
+static hobd_obd_uptime_s hobd_uptime_data;
+
 static uint32_t last_tx_heartbeat;
-static led_state_kind led_state;
+static uint32_t last_tx_uptime;
 static uint32_t last_led_toggle;
 
 static const uint16_t CAN_ID_HEARTBEAT =
         (uint16_t) (HOBD_CAN_ID_HEARTBEAT_BASE + NODE_ID);
+
+
+static void send_uptime(
+        const uint32_t * const now,
+        const uint8_t send_now )
+{
+    const uint32_t delta = time_get_delta(
+            &last_tx_uptime,
+            now);
+
+    if((send_now != 0) || (delta >= HOBD_CAN_TX_INTERVAL_UPTIME))
+    {
+        last_tx_uptime = (*now);
+        hobd_uptime_data.uptime = time_get_seconds();
+
+        const uint8_t ret = canbus_send(
+                HOBD_CAN_ID_OBD_UPTIME,
+                (uint8_t) sizeof(hobd_uptime_data),
+                (const uint8_t*) &hobd_uptime_data);
+
+        if(ret != ERR_OK)
+        {
+            diagnostics_set_warn(HOBD_HEARTBEAT_WARN_CANBUS_TX);
+        }
+    }
+}
 
 
 static void send_heartbeat(
@@ -65,26 +85,13 @@ static void send_heartbeat(
 static void update_led(
         const uint32_t * const now )
 {
-    const uint8_t connected = (hobd_heartbeat_data.warning_register & HOBD_HEARTBEAT_WARN_OBDBUS_RX);
+    const uint8_t connected = ((hobd_heartbeat_data.warning_register & HOBD_HEARTBEAT_WARN_OBDBUS_RX) == 0);
 
     if(hobd_heartbeat_data.state != HOBD_HEARTBEAT_STATE_OK)
     {
-        led_state = LED_STATE_OFF;
-    }
-    else if(connected != 0)
-    {
-        led_state = LED_STATE_ON;
-    }
-    else
-    {
-        led_state = LED_STATE_BLINK;
-    }
-
-    if(led_state == LED_STATE_OFF)
-    {
         led_off();
     }
-    else if(led_state == LED_STATE_ON)
+    else if(connected != 0)
     {
         led_on();
     }
@@ -107,8 +114,8 @@ void diagnostics_init( void )
 {
     led_off();
 
-    led_state = LED_STATE_OFF;
     last_tx_heartbeat = 0;
+    last_tx_uptime = 0;
     last_led_toggle = 0;
 
     hobd_heartbeat_data.hardware_version = HARDWARE_VERSION;
@@ -203,4 +210,6 @@ void diagnostics_update( void )
     update_led(&now);
 
     send_heartbeat(&now, 0);
+
+    send_uptime(&now, 0);
 }

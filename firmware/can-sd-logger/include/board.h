@@ -16,8 +16,8 @@
 #include <stdint.h>
 
 
-#define MODULE_NAME "OBD-GATEWAY"
-#define NODE_ID (0x05)
+#define MODULE_NAME "CAN-SD-LOGGER"
+#define NODE_ID (0x0A)
 #define HARDWARE_VERSION (1)
 #define FIRMWARE_VERSION (1)
 
@@ -52,15 +52,13 @@ typedef uint8_t BOOL;
 #define USE_UART BOTH_UART
 #define UART_BAUDRATE VARIABLE_UART_BAUDRATE
 #define DEBUG_UART UART_0
-#define OBD_UART UART_1
 #define DEBUG_BAUDRATE (115200UL)
-#define OBD_BAUDRATE (115200UL)
 
 // RTC configuration
 #define USE_TIMER8 TIMER8_2
 #define RTC_TIMER (2)
 #define RTC_CLOCK (0)
-#define RTC_SW_TIMER_TICK (50UL)
+#define RTC_SW_TIMER_TICK (500UL)
 
 // CAN configuration
 #define CAN_BAUDRATE (500)

@@ -14,6 +14,8 @@
 #include "can_lib.h"
 
 #include "error.h"
+#include "hobd.h"
+#include "diagnostics.h"
 #include "canbus.h"
 
 
@@ -67,6 +69,11 @@ uint8_t canbus_send(
         }
     }
     while(status != CAN_STATUS_COMPLETED);
+
+    if(ret == ERR_OK)
+    {
+        diagnostics_clear_warn(HOBD_HEARTBEAT_WARN_CANBUS_TX);
+    }
 
     return ret;
 }
