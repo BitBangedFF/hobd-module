@@ -1,5 +1,6 @@
-# cbr-hacks
-CBR Hacks Project
+# hobd-module
+CBR Hacks Project - HOBD Module
 
-![Wiring Diagram](diagrams/cbr-wiring.png?raw=true "Wiring Diagram")
+On board diagnostics module for the CBR1000 RR.
 
+Hardware: at90can128
