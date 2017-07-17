@@ -38,7 +38,7 @@
 
 #####         Target Specific Details          #####
 #####     Customize these for your project     #####
-DEBUG=1
+DEBUG=0
 
 # Name of target controller
 # (e.g. 'at90s8515', see the available avr-gcc mmcu
@@ -55,7 +55,7 @@ PROGRAMMER_MCU=at90can128
 
 # Name of our project
 # (use a single word, e.g. 'myproject')
-PROJECTNAME=obd-gateway
+PROJECTNAME=can-sd-logger
 
 # Source files
 # List C/C++/Assembly source files:
@@ -69,17 +69,22 @@ PRJSRC= ../avrcan-at90can128/bsp/src/timer8_drv.c \
 	../avrcan-at90can128/bsp/src/rtc_drv.c \
 	../avrcan-at90can128/bsp/src/can_drv.c \
 	../avrcan-at90can128/bsp/src/can_lib.c \
+	../avrcan-at90can128/bsp/src/spi_lib.c \
+	../common/fat/src/fat_access.c \
+	../common/fat/src/fat_cache.c \
+	../common/fat/src/fat_filelib.c \
+	../common/fat/src/fat_format.c \
+	../common/fat/src/fat_misc.c \
+	../common/fat/src/fat_string.c \
+	../common/fat/src/fat_table.c \
+	../common/fat/src/fat_write.c \
 	src/time.c \
-	src/ring_buffer.c \
 	src/canbus.c \
-	src/gear_position.c \
-	src/obd.c \
-	src/hobd_parser.c \
-	src/diagnostics.c \
+	src/sd.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)
-INC=-Iinclude -I../common/hobd/include -I../avrcan-at90can128/bsp/include
+INC=-Iinclude -isystem ../common/fat/include -I../common/hobd/include -I../avrcan-at90can128/bsp/include
 
 # libraries to link in (e.g. -lmylib)
 LIBS=-lm
@@ -129,12 +134,13 @@ HEXFORMAT=ihex
 
 # compiler
 CFLAGS=-I. $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL) \
-	-fpack-struct -fshort-enums            \
-	-funsigned-bitfields -funsigned-char   \
+	-fpack-struct -fshort-enums \
+	-funsigned-bitfields -funsigned-char \
 	-std=gnu99 \
-	-Wall               \
 	-DBUILD_TARGET_AVR \
-	-Wa,-ahlms=$(firstword                  \
+	-DFATFS_USE_CUSTOM_OPTS_FILE \
+	-Wall               \
+	-Wa,-ahlms=$(firstword \
 	$(filter %.lst, $(<:.c=.lst)))
 
 # c++ specific flags
