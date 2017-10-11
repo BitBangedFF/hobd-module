@@ -141,7 +141,6 @@ void time_sleep_ms(
     }
 }
 
-
 uint32_t time_get_ms(void)
 {
     disable_interrupt();
@@ -151,7 +150,6 @@ uint32_t time_get_ms(void)
     return timestamp;
 }
 
-
 uint32_t time_get_seconds(void)
 {
     disable_interrupt();
@@ -160,7 +158,6 @@ uint32_t time_get_seconds(void)
 
     return seconds;
 }
-
 
 uint32_t time_get_delta(
         const uint32_t * const value,
@@ -186,12 +183,10 @@ uint32_t time_get_delta(
     return delta;
 }
 
-
 uint8_t time_get_timer(void)
 {
     return timer_reached;
 }
-
 
 void time_clear_timer(void)
 {
