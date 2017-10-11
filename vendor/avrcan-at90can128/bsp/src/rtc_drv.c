@@ -236,8 +236,7 @@ ISR(TIMER2_COMP_vect)
 
 #endif // RTC_TIMER
 
-
-uint32_t rtc_get_ms( void )
+uint32_t rtc_get_ms(void)
 {
     disable_interrupt();
     const uint32_t timestamp = rtc_tics;
@@ -246,8 +245,7 @@ uint32_t rtc_get_ms( void )
     return timestamp;
 }
 
-
-uint32_t rtc_get_seconds( void )
+uint32_t rtc_get_seconds(void)
 {
     disable_interrupt();
     const uint32_t seconds = rtc_seconds;
@@ -256,14 +254,12 @@ uint32_t rtc_get_seconds( void )
     return seconds;
 }
 
-
-uint8_t rtc_timer_get( void )
+uint8_t rtc_timer_get(void)
 {
     return timer_reached;
 }
 
-
-void rtc_timer_clear( void )
+void rtc_timer_clear(void)
 {
     timer_reached = 0;
 }

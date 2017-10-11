@@ -79,18 +79,13 @@ extern void delay_ms(uint16_t ms_count);
 //!
 extern void rtc_int_init(void);
 
-
 uint32_t rtc_get_ms( void );
-
 
 uint32_t rtc_get_seconds( void );
 
-
 uint8_t rtc_timer_get( void );
 
-
 void rtc_timer_clear( void );
-
 
 //______________________________________________________________________________
 

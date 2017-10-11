@@ -405,8 +405,11 @@ uint8_t can_auto_baudrate (uint8_t mode)
 //------------------------------------------------------------------------------
 uint8_t can_fixed_baudrate(uint8_t mode)
 {
+    (void) mode;
+
     Can_reset();
     Can_conf_bt();
+
     return 1;
 }
 
