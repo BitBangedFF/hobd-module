@@ -135,16 +135,29 @@ void obd_uart_init(void)
     uart_tx_in_pu_off();
 
     uart_hw_deinit();
+
+    ring_buffer_init(&rx_buffer);
+    ring_buffer_init(&tx_buffer);
+
     uart_hw_init(CONF_8BIT_NOPAR_1STOP);
     uart_set_ubrr(OBD_BAUDRATE);
 
+    ring_buffer_flush(&rx_buffer);
+    ring_buffer_flush(&tx_buffer);
+
+    uart_rx_enable();
+    uart_rxc_int_enable();
 }
 
 void obd_uart_deinit(void)
 {
     uart_hw_deinit();
+
     uart_rx_in_pu_off();
     uart_tx_in_pu_off();
+
+    ring_buffer_flush(&rx_buffer);
+    ring_buffer_flush(&tx_buffer);
 }
 
 uint16_t obd_uart_getc(void)
