@@ -1,5 +1,4 @@
-bin/
-build/*
-*/build/*
 *.o
 *.lst
+firmware/hobd-module.out
+firmware/hobd-module.out.map

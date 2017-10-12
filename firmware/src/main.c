@@ -11,6 +11,7 @@
 #include "board.h"
 #include "debug.h"
 #include "time.h"
+#include "obd_uart.h"
 
 #ifdef BUILD_TYPE_DEBUG
 #warning "BUILD_TYPE_DEBUG ON"
@@ -19,6 +20,10 @@
 static void init(void)
 {
     wdt_disable();
+    wdt_enable(WDTO_120MS);
+    wdt_reset();
+
+    obd_uart_deinit();
 
     sw0_init();
     sw0_enable_pullup();
@@ -28,11 +33,15 @@ static void init(void)
     led_init();
     led_off();
 
-    wdt_enable(WDTO_120MS);
     wdt_reset();
 
     time_init();
+
+    obd_uart_init();
+
     enable_interrupt();
+
+    debug_puts(MODULE_NAME" inialized");
 }
 
 int main( void )
@@ -41,8 +50,19 @@ int main( void )
 
     while(1)
     {
-        // TODO
         wdt_reset();
+
+        const uint16_t data = obd_uart_getc();
+
+        if(data != RING_BUFFER_NO_DATA)
+        {
+            led_toggle();
+        }
+
+        if(time_get_and_clear_timer() != 0)
+        {
+            // TODO
+        }
     }
 
    return 0;

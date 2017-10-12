@@ -67,10 +67,11 @@ PRJSRC= \
 	../vendor/avrcan-at90can128/bsp/src/timer8_drv.c \
 	../vendor/avrcan-at90can128/bsp/src/timer16_drv.c \
     ../vendor/avrcan-at90can128/bsp/src/uart_drv.c \
-    ../vendor/avrcan-at90can128/bsp/src/uart_lib.c \
     ../vendor/avrcan-at90can128/bsp/src/can_drv.c \
     ../vendor/avrcan-at90can128/bsp/src/can_lib.c \
 	src/time.c \
+	src/ring_buffer.c \
+	src/obd_uart.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)
@@ -290,6 +291,5 @@ clean:
 	$(REMOVE) $(LST) $(GDBINITFILE)
 	$(REMOVE) $(GENASMFILES)
 	$(REMOVE) $(HEXTRG)
-	-rm -f bin/*
 #####                    EOF                   #####
 

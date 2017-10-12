@@ -1,23 +1,20 @@
 /**
- * @file hobd.h
- * @brief TODO.
+ * @file hobd_can.h
+ * @brief HOBD CAN Protocol.
  *
  */
 
-
-#ifndef HOBD_H
-#define	HOBD_H
-
+#ifndef HOBD_CAN_H
+#define	HOBD_CAN_H
 
 #include <stdint.h>
-
 
 // ms
 #define HOBD_CAN_TX_INTERVAL_HEARTBEAT (50)
 #define HOBD_CAN_TX_INTERVAL_UPTIME (1000)
 
 #define HOBD_CAN_ID_HEARTBEAT_BASE (0x010)
-#define HOBD_CAN_ID_HEARTBEAT_OBD_GATEWAY (0x015)
+#define HOBD_CAN_ID_HEARTBEAT_HOBD_MODULE (0x015)
 
 #define HOBD_CAN_ID_COMMAND (0x020)
 #define HOBD_CAN_ID_RESPONSE (0x021)
@@ -60,7 +57,6 @@
 #define HOBD_GEAR_POSITION_6 (6)
 #define HOBD_GEAR_POSITION_COUNT (6)
 
-
 typedef struct
 {
     uint8_t hardware_version : 4;
@@ -72,7 +68,6 @@ typedef struct
     uint16_t error_register;
 } hobd_heartbeat_s;
 
-
 typedef struct
 {
     uint8_t id;
@@ -81,7 +76,6 @@ typedef struct
     uint32_t data_1;
 } hobd_command_s;
 
-
 typedef struct
 {
     uint8_t cmd_id;
@@ -89,7 +83,6 @@ typedef struct
     uint16_t data_0;
     uint32_t data_1;
 } hobd_response_s;
-
 
 /**
  * @brief On-board diagnostics time message.
@@ -106,7 +99,6 @@ typedef struct
     uint16_t counter_2;
 } hobd_obd_time_s;
 
-
 /**
  * @brief On-board diagnostics uptime message.
  *
@@ -119,7 +111,6 @@ typedef struct
 {
     uint32_t uptime; /*!< Module uptime. [seconds] */
 } hobd_obd_uptime_s;
-
 
 /**
  * @brief On-board diagnostics 1 message.
@@ -137,7 +128,6 @@ typedef struct
     uint8_t tps_volt;
     uint8_t tps_percent;
 } hobd_obd1_s;
-
 
 /**
  * @brief On-board diagnostics 2 message.
@@ -158,7 +148,6 @@ typedef struct
     uint16_t fuel_injectors;
 } hobd_obd2_s;
 
-
 /**
  * @brief On-board diagnostics 3 message.
  *
@@ -174,5 +163,4 @@ typedef struct
     uint8_t gear_position;
 } hobd_obd3_s;
 
-
-#endif	/* HOBD_H */
+#endif	/* HOBD_CAN_H */
