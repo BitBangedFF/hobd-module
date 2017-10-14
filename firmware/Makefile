@@ -71,6 +71,7 @@ PRJSRC= \
     ../vendor/avrcan-at90can128/bsp/src/can_lib.c \
 	src/time.c \
 	src/ring_buffer.c \
+	src/debug_uart.c \
 	src/obd_uart.c \
 	src/main.c
 
@@ -99,12 +100,12 @@ OPTLEVEL=0
 # one of the valid "-c PROGRAMMER-ID" values
 # described in the avrdude info page.
 #
-AVRDUDE_PROGRAMMERID=avrispmkI
+AVRDUDE_PROGRAMMERID=jtag1
 
 # port--serial or parallel port to which your
 # hardware programmer is attached
 #
-AVRDUDE_PORT=usb
+AVRDUDE_PORT=/dev/ttyUSB0
 
 ##### Flags ####
 
@@ -207,8 +208,8 @@ hex: $(HEXTRG)
 
 
 writeflash: hex
-	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID)   \
-	 -p $(PROGRAMMER_MCU) -P $(AVRDUDE_PORT) -e        \
+	$(AVRDUDE) -c $(AVRDUDE_PROGRAMMERID) \
+	 -p $(PROGRAMMER_MCU) -P $(AVRDUDE_PORT) -e \
 	 -U flash:w:$(HEXROMTRG)
 
 install: writeflash

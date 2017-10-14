@@ -102,12 +102,12 @@ static __attribute__((always_inline)) inline void uart_hw_deinit(void)
     UART_UBRRH = 0;
     UART_UBRRL = 0;
 
+    uart_rxc_int_disable();
+    uart_txc_int_disable();
+    uart_dre_int_disable();
+
     uart_rx_disable();
     uart_tx_disable();
-
-    uart_rxc_int_enable();
-    uart_txc_int_enable();
-    uart_dre_int_disable();
 }
 
 static __attribute__((always_inline)) inline void uart_hw_init(

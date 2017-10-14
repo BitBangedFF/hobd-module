@@ -11,6 +11,7 @@
 #include "board.h"
 #include "debug.h"
 #include "time.h"
+#include "debug_uart.h"
 #include "obd_uart.h"
 
 #ifdef BUILD_TYPE_DEBUG
@@ -24,6 +25,7 @@ static void init(void)
     wdt_reset();
 
     obd_uart_deinit();
+    debug_uart_deinit();
 
     sw0_init();
     sw0_enable_pullup();
@@ -36,6 +38,8 @@ static void init(void)
     wdt_reset();
 
     time_init();
+
+    debug_init();
 
     obd_uart_init();
 

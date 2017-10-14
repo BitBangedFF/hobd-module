@@ -2,3 +2,5 @@
 *.lst
 firmware/hobd-module.out
 firmware/hobd-module.out.map
+firmware/hobd-module.hex
+firmware/hobd-module.ee.hex
