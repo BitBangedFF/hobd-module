@@ -8,7 +8,6 @@
 #include <avr/interrupt.h>
 #include <stdint.h>
 #include "board.h"
-#include "error.h"
 #include "ring_buffer.h"
 #include "obd_uart.h"
 
