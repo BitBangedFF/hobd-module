@@ -23,10 +23,8 @@ typedef struct
 {
     hobd_parser_state_kind state;
     uint8_t bytes_read;
-    uint8_t data_size;
-    hobd_msg_header_s header;
-    uint16_t checksum_part;
-    uint8_t checksum;
+    uint8_t total_size;
+    uint16_t checksum;
     uint16_t valid_count;
     uint16_t invalid_count;
     uint8_t *rx_buffer;

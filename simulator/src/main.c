@@ -39,6 +39,7 @@ int main(void)
             sizeof(hobd_rx_buffer),
             &hobd_parser);
 
+    // TODO
     // hobd parser is fake ECU
     // hook up USB debug for logging
     // minitor GPIO -> enable parser ...
