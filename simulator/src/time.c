@@ -131,9 +131,13 @@ void time_clear_timer(void)
 
 uint8_t time_get_and_clear_timer(void)
 {
+    disable_interrupt();
+
     const uint8_t status = global_timer_signal;
 
     global_timer_signal = 0;
+
+    enable_interrupt();
 
     return status;
 }

@@ -32,6 +32,7 @@ TARGET = obd-simulator
 SRC = src/time.c \
 	  src/ring_buffer.c \
 	  src/obd_uart.c \
+	  src/hobd_parser.c \
 	  src/main.c
 
 
