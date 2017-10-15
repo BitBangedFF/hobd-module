@@ -105,6 +105,13 @@ void hobd_parser_init(
     parser->rx_buffer_size = rx_buffer_size;
 }
 
+void hobd_parser_reset(
+        hobd_parser_s * const parser)
+{
+    ready_parser(parser);
+    parser->state = HOBD_PARSER_STATE_GET_TYPE;
+}
+
 uint8_t hobd_parser_parse_byte(
         const uint8_t byte,
         hobd_parser_s * const parser)

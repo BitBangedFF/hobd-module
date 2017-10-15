@@ -36,6 +36,9 @@ void hobd_parser_init(
         const uint16_t rx_buffer_size,
         hobd_parser_s * const parser);
 
+void hobd_parser_reset(
+        hobd_parser_s * const parser);
+
 uint8_t hobd_parser_parse_byte(
         const uint8_t byte,
         hobd_parser_s * const parser);
