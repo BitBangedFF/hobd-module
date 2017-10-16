@@ -168,13 +168,24 @@ uint16_t obd_uart_getc(void)
 void obd_uart_putc(
         const uint8_t data)
 {
-    ring_buffer_putc(
-            data,
-            &tx_buffer);
+    obd_uart_send(&data, 1);
+}
 
-    if((tx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
+void obd_uart_send(
+        const uint8_t * const data,
+        const uint16_t size)
+{
+    uint16_t i;
+    for(i = 0; i < size; i += 1)
     {
-        // TODO
+        ring_buffer_putc(
+                data[i],
+                &tx_buffer);
+
+        if((tx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
+        {
+            // TODO
+        }
     }
 
     // disable receiver

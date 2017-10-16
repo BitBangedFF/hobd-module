@@ -206,3 +206,27 @@ uint8_t hobd_parser_parse_byte(
 
     return ret;
 }
+
+uint8_t hobd_parser_checksum(
+        const uint8_t * const data,
+        const uint16_t size)
+{
+    uint16_t cs;
+    uint16_t idx;
+
+    for(idx = 0, cs = 0; idx < size; idx += 1)
+    {
+        cs += (uint16_t) data[idx];
+    }
+
+    if(cs > 0x0100)
+    {
+        cs = (0x0100 - (cs & 0x00FF));
+    }
+    else
+    {
+        cs = (0x0100 - cs);
+    }
+
+    return (uint8_t) (cs & 0xFF);
+}

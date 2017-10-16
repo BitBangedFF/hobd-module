@@ -43,4 +43,8 @@ uint8_t hobd_parser_parse_byte(
         const uint8_t byte,
         hobd_parser_s * const parser);
 
+uint8_t hobd_parser_checksum(
+        const uint8_t * const data,
+        const uint16_t size);
+
 #endif	/* HOBD_PARSER_H */

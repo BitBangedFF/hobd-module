@@ -7,6 +7,7 @@
 #include <avr/io.h>
 #include <avr/interrupt.h>
 #include <avr/wdt.h>
+#include <string.h>
 #include <stdint.h>
 #include "board.h"
 #include "time.h"
@@ -15,6 +16,7 @@
 #include "ecu.h"
 
 #define GPIO_WAIT_DELAY (60)
+#define NO_DATA_TIMEOUT (500)
 
 // OBD UART Rx used for GPIO
 #define GPIO_PORT_DDR   (DDRD)
@@ -34,19 +36,104 @@ typedef enum
     ECU_STATE_ACTIVE
 } ecu_state_kind;
 
+static uint8_t table_0_buffer[HOBD_TABLE_SIZE_MAX];
+static uint8_t table_16_buffer[HOBD_TABLE_SIZE_MAX];
+static uint8_t table_32_buffer[HOBD_TABLE_SIZE_MAX];
+static uint8_t table_209_buffer[HOBD_TABLE_SIZE_MAX];
 static uint8_t rx_buffer[HOBD_MSG_SIZE_MAX];
+static uint8_t tx_buffer[HOBD_MSG_SIZE_MAX];
 
 static hobd_msg_header_s * const rx_header =
         (hobd_msg_header_s*) &rx_buffer[0];
-
 static hobd_msg_s * const rx_msg =
         (hobd_msg_s*) &rx_buffer[0];
+static hobd_msg_header_s * const tx_header =
+        (hobd_msg_header_s*) &tx_buffer[0];
+static hobd_msg_s * const tx_msg =
+        (hobd_msg_s*) &tx_buffer[0];
 
 static hobd_parser_s hobd_parser;
-
 static ecu_state_kind ecu_state = ECU_STATE_GPIO_WAIT;
 
-static __attribute__((always_inline)) inline uint8_t check_for_message(void)
+static void handle_rx_message(void)
+{
+    if(rx_header->type == HOBD_MSG_TYPE_QUERY)
+    {
+        if(rx_header->subtype == HOBD_MSG_SUBTYPE_INIT)
+        {
+            tx_header->type = HOBD_MSG_TYPE_RESPONSE;
+            tx_header->size = HOBD_MSG_HEADERCS_SIZE;
+            tx_header->subtype = HOBD_MSG_SUBTYPE_INIT;
+
+            tx_msg->data[0] = hobd_parser_checksum(
+                    &tx_buffer[0],
+                    tx_header->size - 1);
+
+            obd_uart_send(&tx_buffer[0], tx_header->size);
+        }
+    }
+    else if(rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP)
+    {
+        const hobd_data_table_query_s * const query =
+                (hobd_data_table_query_s*) &rx_msg->data[0];
+
+        hobd_data_table_response_s * const resp =
+                (hobd_data_table_response_s*) &tx_msg->data[0];
+
+        tx_header->type = HOBD_MSG_TYPE_RESPONSE;
+        tx_header->size = HOBD_MSG_HEADERCS_SIZE;
+        tx_header->subtype = HOBD_MSG_SUBTYPE_TABLE_SUBGROUP;
+
+        tx_header->size += (uint8_t) sizeof(*resp);
+        tx_header->size += query->count;
+
+        resp->table = query->table;
+        resp->offset = query->offset;
+
+        if(query->count != 0)
+        {
+            uint8_t *src_table_ptr;
+
+            if(query->table == HOBD_TABLE_0)
+            {
+                src_table_ptr = &table_0_buffer[0];
+            }
+            else if(query->table == HOBD_TABLE_16)
+            {
+                src_table_ptr = &table_16_buffer[0];
+            }
+            else if(query->table == HOBD_TABLE_32)
+            {
+                src_table_ptr = &table_32_buffer[0];
+            }
+            else if(query->table == HOBD_TABLE_209)
+            {
+                src_table_ptr = &table_209_buffer[0];
+            }
+            else
+            {
+                src_table_ptr = &table_0_buffer[0];
+            }
+
+            (void) memcpy(
+                    &resp->data[0],
+                    &src_table_ptr[0],
+                    query->count);
+        }
+
+        tx_msg->data[tx_header->size] = hobd_parser_checksum(
+                    &tx_buffer[0],
+                    tx_header->size - 1);
+
+        obd_uart_send(&tx_buffer[0], tx_header->size);
+    }
+    else if(rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE)
+    {
+        // TODO - is the query/response struct the same?
+    }
+}
+
+static uint8_t check_for_message(void)
 {
     uint8_t msg_type = HOBD_MSG_TYPE_INVALID;
 
@@ -67,8 +154,8 @@ static __attribute__((always_inline)) inline uint8_t check_for_message(void)
     return msg_type;
 }
 
-static __attribute__((always_inline)) inline void gpio_wait_update(void)
-{   
+static void gpio_wait_update(void)
+{
     gpio_in_pu_off();
 
     if(gpio_get() == 0)
@@ -88,8 +175,8 @@ static __attribute__((always_inline)) inline void gpio_wait_update(void)
     }
 }
 
-static __attribute__((always_inline)) inline void wakeup_wait_update(void)
-{   
+static void wakeup_wait_update(void)
+{
     const uint8_t msg_type = check_for_message();
 
     if(msg_type == HOBD_MSG_TYPE_WAKE_UP)
@@ -102,7 +189,7 @@ static __attribute__((always_inline)) inline void wakeup_wait_update(void)
     }
 }
 
-static __attribute__((always_inline)) inline void init_wait_update(void)
+static void init_wait_update(void)
 {
     const uint8_t msg_type = check_for_message();
 
@@ -113,28 +200,20 @@ static __attribute__((always_inline)) inline void init_wait_update(void)
             if(rx_msg->data[0] == HOBD_INIT_DATA)
             {
                 ecu_state = ECU_STATE_ACTIVE;
+                handle_rx_message();
                 hobd_parser_reset(&hobd_parser);
             }
         }
     }
 }
 
-static __attribute__((always_inline)) inline void active_update(void)
+static void active_update(void)
 {
     const uint8_t msg_type = check_for_message();
 
     if(msg_type == HOBD_MSG_TYPE_QUERY)
     {
-        if(rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE)
-        {
-            // TODO
-            led_toggle();
-        }
-        else if(rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP)
-        {   
-            // TODO
-            led_toggle();
-        }
+        handle_rx_message();
     }
 }
 
