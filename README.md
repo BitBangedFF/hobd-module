@@ -14,6 +14,7 @@ It's just what I have discovered by exploring and could be completely wrong!
     - [AVR-CAN reference](vendor/avrcan-at90can128/doc/pdf/AVR-CAN-1.pdf)
     - [at90can128 reference](vendor/avrcan-at90can128/doc/pdf/AT90CAN_chip_ref.pdf)
   - MC33660EF (K-line interface)
+    - [chip reference](vendor/mc33660ef/doc/MC33660-1126837.pdf)
 
 ## HOBD (Honda On-Board Diagnostic) Protocol
 The ECU on the motorcycle has a K-line wire brought out through the Data Link Connector.
