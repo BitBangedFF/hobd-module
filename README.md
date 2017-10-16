@@ -3,21 +3,17 @@ CBR Hacks Project - HOBD Module
 
 On board diagnostics module for the CBR1000 RR (2005) motorcycle.
 
-Hardware: at90can128 (AVR-CAN from Olimex)
-
 ## WARNING
 The information here is **not** guaranteed to be accurate!
 
 It's just what I have discovered by exploring and could be completely wrong!
 
-TODO:
+## Hardware:
 
-  * Do I need any pullups on the Rx/Tx <-> K-line?
-  * Document the protocol, similar to ISO 9141-2
-  * Make this readme better, links to docs/diagrams/etc
-  * Talk about hw setup, k-line, converter, etc
-  * Hook up diagnostics/error-reporting (like in the USART ISRs)
-  * Figure out how to use the new hw MC33660EF
+  - at90can128 (AVR-CAN from Olimex)
+    - [AVR-CAN reference](vendor/avrcan-at90can128/doc/pdf/AVR-CAN-1.pdf)
+    - [at90can128 reference](vendor/avrcan-at90can128/doc/pdf/AT90CAN_chip_ref.pdf)
+  - MC33660EF (K-line interface)
 
 ## HOBD (Honda On-Board Diagnostic) Protocol
 The ECU on the motorcycle has a K-line wire brought out through the Data Link Connector.
@@ -28,6 +24,7 @@ but with a different message protocol.
   - three byte header (type, total size, subtype)
   - zero or more payload bytes
   - one byte checksum
+  - 10,400 bps
 
 ### Initialization Sequence
 
@@ -39,7 +36,12 @@ but with a different message protocol.
   - ECU will now respond to data queries
   - ECU will timeout after 120 ms of inactivity (repeat initialization sequence)
 
-### MC33660EF K-line Interface
+### ECU Data Tables
+TODO
+
+  - [ECU data tables pdf](doc/pdf/Honda-data-tables.pdf)
+
+## MC33660EF K-line Interface
 TODO
 
 ## CAN Protocol
