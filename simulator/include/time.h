@@ -18,6 +18,10 @@ void time_delay_ms(
 
 uint32_t time_get_ms(void);
 
+uint32_t time_get_delta(
+        const uint32_t * const value,
+        const uint32_t * const now);
+
 uint8_t time_get_timer(void);
 
 void time_clear_timer(void);

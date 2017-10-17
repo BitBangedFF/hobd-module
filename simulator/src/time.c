@@ -117,6 +117,30 @@ uint32_t time_get_ms(void)
     return timestamp;
 }
 
+uint32_t time_get_delta(
+        const uint32_t * const value,
+        const uint32_t * const now)
+{
+    uint32_t delta;
+
+    // check for overflow
+    if((*now) < (*value))
+    {
+        // time remainder, prior to the overflow
+        delta = (UINT32_MAX - (*value));
+
+        // add time since zero
+        delta += (*now);
+    }
+    else
+    {
+        // normal delta
+        delta = ((*now) - (*value));
+    }
+
+    return delta;
+}
+
 uint8_t time_get_timer(void)
 {
     const uint8_t timer = global_timer_signal;

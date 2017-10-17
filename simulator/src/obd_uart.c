@@ -130,8 +130,9 @@ static __attribute__((always_inline)) inline void uart_set_ubrr(
 
 void obd_uart_init(void)
 {
-    // rx/tx are set to inputs, pullups off
-    uart_rx_in_pu_off();
+    // rx/tx are set to inputs
+    // rx pullup on, tx pullup off
+    uart_rx_in_pu_on();
     uart_tx_in_pu_off();
 
     uart_hw_deinit();
@@ -153,7 +154,7 @@ void obd_uart_deinit(void)
 {
     uart_hw_deinit();
 
-    uart_rx_in_pu_off();
+    uart_rx_in_pu_on();
     uart_tx_in_pu_off();
 
     ring_buffer_flush(&rx_buffer);

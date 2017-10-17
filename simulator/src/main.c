@@ -20,6 +20,8 @@ int main(void)
     CPU_PRESCALE(CPU_16MHZ);
 
     wdt_disable();
+    wdt_enable(WDTO_120MS);
+    wdt_reset();
 
     ecu_deinit();
 
@@ -40,7 +42,7 @@ int main(void)
 
         if(time_get_and_clear_timer() != 0)
         {
-            // TODO
+            ecu_check_timeout_reset();
         }
     }
 

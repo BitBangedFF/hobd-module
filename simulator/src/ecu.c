@@ -16,7 +16,7 @@
 #include "ecu.h"
 
 #define GPIO_WAIT_DELAY (60)
-#define NO_DATA_TIMEOUT (500)
+#define NO_DATA_TIMEOUT (1000)
 
 // OBD UART Rx used for GPIO
 #define GPIO_PORT_DDR   (DDRD)
@@ -26,6 +26,7 @@
 #define GPIO_RX_MASK    (1 << GPIO_RX_PIN)
 
 #define gpio_in_pu_off() { GPIO_PORT_DDR &= ~GPIO_RX_MASK; GPIO_PORT_OUT &= ~GPIO_RX_PIN; }
+#define gpio_in_pu_on() { GPIO_PORT_DDR &= ~GPIO_RX_MASK; GPIO_PORT_OUT |= GPIO_RX_PIN; }
 #define gpio_get() (GPIO_PORT_IN & GPIO_RX_MASK)
 
 typedef enum
@@ -143,7 +144,9 @@ static uint8_t check_for_message(void)
 
         if(status == 0)
         {
+            led_toggle();
             msg_type = rx_header->type;
+            last_update = time_get_ms();
         }
     }
 
@@ -152,13 +155,15 @@ static uint8_t check_for_message(void)
 
 static void gpio_wait_update(void)
 {
-    gpio_in_pu_off();
+    gpio_in_pu_on();
 
     if(gpio_get() == 0)
     {
         time_delay_ms(GPIO_WAIT_DELAY);
 
         while(gpio_get() == 0);
+
+        wdt_reset();
 
         time_delay_ms(GPIO_WAIT_DELAY);
 
@@ -167,6 +172,7 @@ static void gpio_wait_update(void)
             ecu_state = ECU_STATE_WAKEUP_WAIT;
             obd_uart_init();
             hobd_parser_reset(&hobd_parser);
+            last_update = time_get_ms();
         }
     }
 }
@@ -217,6 +223,8 @@ void ecu_init(void)
 {
     obd_uart_deinit();
 
+    led_on();
+
     hobd_parser_init(
             &rx_buffer[0],
             sizeof(rx_buffer),
@@ -235,8 +243,6 @@ void ecu_deinit(void)
 
 void ecu_update(void)
 {
-    // TODO - need to hook up the timeout mechanism
-
     if(ecu_state == ECU_STATE_GPIO_WAIT)
     {
         gpio_wait_update();
@@ -252,5 +258,17 @@ void ecu_update(void)
     else if(ecu_state == ECU_STATE_ACTIVE)
     {
         active_update();
+    }
+}
+
+void ecu_check_timeout_reset(void)
+{
+    const uint32_t now = time_get_ms();
+
+    const uint32_t delta = time_get_delta(&last_update, &now);
+
+    if(delta >= NO_DATA_TIMEOUT)
+    {
+        ecu_init();
     }
 }

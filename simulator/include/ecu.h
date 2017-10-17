@@ -15,4 +15,6 @@ void ecu_deinit(void);
 
 void ecu_update(void);
 
+void ecu_check_timeout_reset(void);
+
 #endif	/* ECU_H */
