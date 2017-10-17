@@ -9,7 +9,7 @@
 #include "board.h"
 #include "error.h"
 #include "time.h"
-#include "hobd_protocol.h"
+#include "hobd_kline.h"
 #include "hobd_parser.h"
 
 static uint8_t valid_type(

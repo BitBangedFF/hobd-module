@@ -8,7 +8,7 @@
 #define	HOBD_PARSER_H
 
 #include <stdint.h>
-#include "hobd_protocol.h"
+#include "hobd_kline.h"
 
 typedef enum
 {

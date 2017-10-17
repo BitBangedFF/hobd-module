@@ -1,6 +1,6 @@
 /**
- * @file hobd_protocol.h
- * @brief Honda OBD Protocol.
+ * @file hobd_kline.h
+ * @brief Honda OBD K-line Protocol.
  *
  * @todo hobd protocol notes.
  *
@@ -21,8 +21,8 @@
  *
  */
 
-#ifndef HOBD_PROTOCOL_H
-#define HOBD_PROTOCOL_H
+#ifndef HOBD_KLINE_H
+#define HOBD_KLINE_H
 
 #include <stdint.h>
 
@@ -121,4 +121,4 @@ typedef struct
     uint8_t engine_on;
 } hobd_table_209_s;
 
-#endif  /* HOBD_PROTOCOL_H */
+#endif  /* HOBD_KLINE_H */
