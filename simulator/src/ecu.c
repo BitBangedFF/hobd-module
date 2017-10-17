@@ -169,6 +169,7 @@ static void gpio_wait_update(void)
 
         if(gpio_get() != 0)
         {
+            led_off();
             ecu_state = ECU_STATE_WAKEUP_WAIT;
             obd_uart_init();
             hobd_parser_reset(&hobd_parser);
