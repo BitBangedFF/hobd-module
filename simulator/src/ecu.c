@@ -15,24 +15,11 @@
 #include "hobd_parser.h"
 #include "ecu.h"
 
-#define GPIO_WAIT_DELAY (60)
-#define NO_DATA_TIMEOUT (1000)
-
-// OBD UART Rx used for GPIO
-#define GPIO_PORT_DDR   (DDRD)
-#define GPIO_PORT_OUT   (PORTD)
-#define GPIO_PORT_IN    (PIND)
-#define GPIO_RX_PIN     (2)
-#define GPIO_RX_MASK    (1 << GPIO_RX_PIN)
-
-#define gpio_in_pu_off() { GPIO_PORT_DDR &= ~GPIO_RX_MASK; GPIO_PORT_OUT &= ~GPIO_RX_PIN; }
-#define gpio_in_pu_on() { GPIO_PORT_DDR &= ~GPIO_RX_MASK; GPIO_PORT_OUT |= GPIO_RX_PIN; }
-#define gpio_get() (GPIO_PORT_IN & GPIO_RX_MASK)
+#define NO_DATA_TIMEOUT (1000UL)
 
 typedef enum
 {
-    ECU_STATE_GPIO_WAIT = 0,
-    ECU_STATE_WAKEUP_WAIT,
+    ECU_STATE_WAKEUP_WAIT = 0,
     ECU_STATE_INIT_WAIT,
     ECU_STATE_ACTIVE
 } ecu_state_kind;
@@ -51,7 +38,7 @@ static hobd_msg_header_s * const tx_header = (hobd_msg_header_s*) &tx_buffer[0];
 static hobd_msg_s * const tx_msg = (hobd_msg_s*) &tx_buffer[0];
 
 static hobd_parser_s hobd_parser;
-static ecu_state_kind ecu_state = ECU_STATE_GPIO_WAIT;
+static ecu_state_kind ecu_state = ECU_STATE_WAKEUP_WAIT;
 static uint32_t last_update = 0;
 
 static void handle_rx_message(void)
@@ -153,31 +140,6 @@ static uint8_t check_for_message(void)
     return msg_type;
 }
 
-static void gpio_wait_update(void)
-{
-    gpio_in_pu_on();
-
-    if(gpio_get() == 0)
-    {
-        time_delay_ms(GPIO_WAIT_DELAY);
-
-        while(gpio_get() == 0);
-
-        wdt_reset();
-
-        time_delay_ms(GPIO_WAIT_DELAY);
-
-        if(gpio_get() != 0)
-        {
-            led_off();
-            ecu_state = ECU_STATE_WAKEUP_WAIT;
-            obd_uart_init();
-            hobd_parser_reset(&hobd_parser);
-            last_update = time_get_ms();
-        }
-    }
-}
-
 static void wakeup_wait_update(void)
 {
     const uint8_t msg_type = check_for_message();
@@ -231,7 +193,9 @@ void ecu_init(void)
             sizeof(rx_buffer),
             &hobd_parser);
 
-    ecu_state = ECU_STATE_GPIO_WAIT;
+    ecu_state = ECU_STATE_WAKEUP_WAIT;
+
+    obd_uart_init();
 
     last_update = time_get_ms();
 }
@@ -239,16 +203,12 @@ void ecu_init(void)
 void ecu_deinit(void)
 {
     obd_uart_deinit();
-    ecu_state = ECU_STATE_GPIO_WAIT;
+    ecu_state = ECU_STATE_WAKEUP_WAIT;
 }
 
 void ecu_update(void)
 {
-    if(ecu_state == ECU_STATE_GPIO_WAIT)
-    {
-        gpio_wait_update();
-    }
-    else if(ecu_state == ECU_STATE_WAKEUP_WAIT)
+    if(ecu_state == ECU_STATE_WAKEUP_WAIT)
     {
         wakeup_wait_update();
     }
@@ -264,12 +224,15 @@ void ecu_update(void)
 
 void ecu_check_timeout_reset(void)
 {
-    const uint32_t now = time_get_ms();
-
-    const uint32_t delta = time_get_delta(&last_update, &now);
-
-    if(delta >= NO_DATA_TIMEOUT)
+    if(ecu_state != ECU_STATE_WAKEUP_WAIT)
     {
-        ecu_init();
+        const uint32_t now = time_get_ms();
+
+        const uint32_t delta = time_get_delta(&last_update, &now);
+
+        if(delta >= NO_DATA_TIMEOUT)
+        {
+            ecu_init();
+        }
     }
 }

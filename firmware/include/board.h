@@ -47,7 +47,7 @@ typedef uint8_t BOOL;
 #define DEBUG_UART UART_0
 #define OBD_UART UART_1
 #define DEBUG_BAUDRATE (115200UL)
-#define OBD_BAUDRATE (115200UL)
+#define OBD_BAUDRATE (10400UL)
 
 // RTC configuration
 #define USE_TIMER8 TIMER8_2

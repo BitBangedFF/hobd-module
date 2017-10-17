@@ -37,7 +37,7 @@
 #define enable_interrupt() {asm ("sei"::);}
 #define disable_interrupt() {asm ("cli"::);}
 
-#define OBD_BAUDRATE (115200UL)
+#define OBD_BAUDRATE (10400UL)
 
 #define LED_PIN PIND
 #define LED_DDR DDRD

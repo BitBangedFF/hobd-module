@@ -73,6 +73,7 @@ PRJSRC= \
 	src/ring_buffer.c \
 	src/debug_uart.c \
 	src/obd_uart.c \
+	src/canbus.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)

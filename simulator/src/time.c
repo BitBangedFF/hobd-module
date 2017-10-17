@@ -7,6 +7,7 @@
 #include <stdint.h>
 #include <avr/io.h>
 #include <avr/interrupt.h>
+#include <util/delay_basic.h>
 #include "board.h"
 #include "time.h"
 
@@ -42,12 +43,12 @@ static void delay_ms(
     uint8_t done;
     uint32_t time;
 
+    done = 0;
     disable_interrupt();
     time = global_counter_ms;
     enable_interrupt();
 
     time += (uint32_t) ms;
-    done = 0;
 
     while(done == 0)
     {
@@ -74,8 +75,7 @@ void time_init(void)
     timer8_clear();
 
     // wait for Xtal to stabilize
-    uint16_t i;
-    for(i = 0; i < 0xFFFF; i += 1);
+    _delay_loop_2(0xFFFF);
 
     timer8_overflow_it_disable();
     timer8_compare_a_it_disable();
@@ -90,13 +90,15 @@ void time_init(void)
     timer8_clear_compare_a_it();
     timer8_compare_a_it_enable();
 
-    for(i = 0; i < 0xFFFF; i += 1);
+    _delay_loop_2(0xFFFF);
 
     global_counter_ms = 0;
     global_timer_counter = 0;
     global_timer_signal = 0;
 
     enable_interrupt();
+
+    _delay_loop_2(0xFFFF);
 }
 
 void time_delay_ms(
