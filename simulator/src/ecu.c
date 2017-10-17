@@ -40,20 +40,18 @@ static uint8_t table_0_buffer[HOBD_TABLE_SIZE_MAX];
 static uint8_t table_16_buffer[HOBD_TABLE_SIZE_MAX];
 static uint8_t table_32_buffer[HOBD_TABLE_SIZE_MAX];
 static uint8_t table_209_buffer[HOBD_TABLE_SIZE_MAX];
+
 static uint8_t rx_buffer[HOBD_MSG_SIZE_MAX];
 static uint8_t tx_buffer[HOBD_MSG_SIZE_MAX];
 
-static hobd_msg_header_s * const rx_header =
-        (hobd_msg_header_s*) &rx_buffer[0];
-static hobd_msg_s * const rx_msg =
-        (hobd_msg_s*) &rx_buffer[0];
-static hobd_msg_header_s * const tx_header =
-        (hobd_msg_header_s*) &tx_buffer[0];
-static hobd_msg_s * const tx_msg =
-        (hobd_msg_s*) &tx_buffer[0];
+static hobd_msg_header_s * const rx_header = (hobd_msg_header_s*) &rx_buffer[0];
+static hobd_msg_s * const rx_msg = (hobd_msg_s*) &rx_buffer[0];
+static hobd_msg_header_s * const tx_header = (hobd_msg_header_s*) &tx_buffer[0];
+static hobd_msg_s * const tx_msg = (hobd_msg_s*) &tx_buffer[0];
 
 static hobd_parser_s hobd_parser;
 static ecu_state_kind ecu_state = ECU_STATE_GPIO_WAIT;
+static uint32_t last_update = 0;
 
 static void handle_rx_message(void)
 {
@@ -72,7 +70,9 @@ static void handle_rx_message(void)
             obd_uart_send(&tx_buffer[0], tx_header->size);
         }
     }
-    else if(rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP)
+    else if(
+            (rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE_SUBGROUP)
+            || (rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE))
     {
         const hobd_data_table_query_s * const query =
                 (hobd_data_table_query_s*) &rx_msg->data[0];
@@ -82,7 +82,7 @@ static void handle_rx_message(void)
 
         tx_header->type = HOBD_MSG_TYPE_RESPONSE;
         tx_header->size = HOBD_MSG_HEADERCS_SIZE;
-        tx_header->subtype = HOBD_MSG_SUBTYPE_TABLE_SUBGROUP;
+        tx_header->subtype = rx_header->subtype;
 
         tx_header->size += (uint8_t) sizeof(*resp);
         tx_header->size += query->count;
@@ -126,10 +126,6 @@ static void handle_rx_message(void)
                     tx_header->size - 1);
 
         obd_uart_send(&tx_buffer[0], tx_header->size);
-    }
-    else if(rx_header->subtype == HOBD_MSG_SUBTYPE_TABLE)
-    {
-        // TODO - is the query/response struct the same?
     }
 }
 
@@ -227,6 +223,8 @@ void ecu_init(void)
             &hobd_parser);
 
     ecu_state = ECU_STATE_GPIO_WAIT;
+
+    last_update = time_get_ms();
 }
 
 void ecu_deinit(void)
@@ -238,7 +236,6 @@ void ecu_deinit(void)
 void ecu_update(void)
 {
     // TODO - need to hook up the timeout mechanism
-    // TODO - add response messages
 
     if(ecu_state == ECU_STATE_GPIO_WAIT)
     {
