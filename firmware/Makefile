@@ -74,6 +74,9 @@ PRJSRC= \
 	src/debug_uart.c \
 	src/obd_uart.c \
 	src/canbus.c \
+	src/diagnostics.c \
+	src/hobd_parser.c \
+	src/comm.c \
 	src/main.c
 
 # additional includes (e.g. -I/path/to/mydir)

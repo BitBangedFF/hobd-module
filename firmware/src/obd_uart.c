@@ -10,6 +10,8 @@
 #include "board.h"
 #include "error.h"
 #include "ring_buffer.h"
+#include "hobd_can.h"
+#include "diagnostics.h"
 #include "obd_uart.h"
 
 #define UART_PORT_DDR   (DDRD)
@@ -63,6 +65,11 @@ ISR(UART_RXC_ISR)
     ring_buffer_putc(
             data,
             &rx_buffer);
+
+    if((rx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
+    {
+        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_RX_OVERFLOW);
+    }
 }
 
 ISR(UART_TXC_ISR)
@@ -175,7 +182,7 @@ void obd_uart_putc(
 
     if((tx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
     {
-        // TODO
+        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_TX_OVERFLOW);
     }
 
     // disable receiver

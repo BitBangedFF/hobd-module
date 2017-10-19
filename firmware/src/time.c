@@ -16,12 +16,12 @@
 #warning "using default RTC_SW_TIMER_TICK 50"
 #endif
 
-static volatile uint32_t rtc_tics = 0;
-static volatile uint16_t rtc_counter = 0;
-static volatile uint32_t rtc_seconds = 0;
+static volatile uint32_t rtc_tics;
+static volatile uint16_t rtc_counter;
+static volatile uint32_t rtc_seconds;
 
-static volatile uint32_t timer_counter = 0;
-static volatile uint8_t timer_reached = 0;
+static volatile uint32_t timer_counter;
+static volatile uint8_t timer_reached;
 
 static uint8_t is_init = FALSE;
 

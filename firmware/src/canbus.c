@@ -10,7 +10,7 @@
 #include "can_lib.h"
 #include "error.h"
 #include "hobd_can.h"
-//#include "diagnostics.h"
+#include "diagnostics.h"
 #include "canbus.h"
 
 void canbus_init(void)
@@ -61,13 +61,10 @@ uint8_t canbus_send(
     }
     while(status != CAN_STATUS_COMPLETED);
 
-#warning "TODO - diagnostics"
-    /*
     if(ret == ERR_OK)
     {
         diagnostics_clear_warn(HOBD_HEARTBEAT_WARN_CANBUS_TX);
     }
-    */
 
     return ret;
 }

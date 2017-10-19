@@ -13,6 +13,10 @@
 #include "time.h"
 #include "debug_uart.h"
 #include "obd_uart.h"
+#include "canbus.h"
+#include "diagnostics.h"
+#include "comm.h"
+#include "hobd_can.h"
 
 #ifdef BUILD_TYPE_DEBUG
 #warning "BUILD_TYPE_DEBUG ON"
@@ -24,7 +28,7 @@ static void init(void)
     wdt_enable(WDTO_120MS);
     wdt_reset();
 
-    obd_uart_deinit();
+    comm_deinit();
     debug_uart_deinit();
 
     sw0_init();
@@ -35,13 +39,17 @@ static void init(void)
     led_init();
     led_off();
 
-    wdt_reset();
-
     time_init();
+
+    wdt_reset();
 
     debug_init();
 
-    obd_uart_init();
+    diagnostics_init();
+
+    canbus_init();
+
+    comm_init();
 
     enable_interrupt();
 
@@ -51,6 +59,10 @@ static void init(void)
 int main( void )
 {
     init();
+
+    diagnostics_update();
+
+    diagnostics_set_state(HOBD_HEARTBEAT_STATE_OK);
 
     while(1)
     {
@@ -63,9 +75,11 @@ int main( void )
             led_toggle();
         }
 
+        // TODO
+
         if(time_get_and_clear_timer() != 0)
         {
-            // TODO
+            diagnostics_update();
         }
     }
 
