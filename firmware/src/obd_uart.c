@@ -164,8 +164,8 @@ void obd_uart_deinit(void)
     uart_rx_in_pu_off();
     uart_tx_in_pu_off();
 
-    ring_buffer_flush(&rx_buffer);
-    ring_buffer_flush(&tx_buffer);
+    ring_buffer_init(&rx_buffer);
+    ring_buffer_init(&tx_buffer);
 }
 
 uint16_t obd_uart_getc(void)
@@ -176,13 +176,24 @@ uint16_t obd_uart_getc(void)
 void obd_uart_putc(
         const uint8_t data)
 {
-    ring_buffer_putc(
-            data,
-            &tx_buffer);
+    obd_uart_send(&data, 1);
+}
 
-    if((tx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
+void obd_uart_send(
+        const uint8_t * const data,
+        const uint16_t size)
+{
+    uint16_t i;
+    for(i = 0; i < size; i += 1)
     {
-        diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_TX_OVERFLOW);
+        ring_buffer_putc(
+                data[i],
+                &tx_buffer);
+
+        if((tx_buffer.error & (RING_BUFFER_RX_OVERFLOW >> 8)) != 0)
+        {
+            diagnostics_set_warn(HOBD_HEARTBEAT_WARN_OBDBUS_TX_OVERFLOW);
+        }
     }
 
     // disable receiver

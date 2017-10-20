@@ -5,6 +5,8 @@
  */
 
 #include <avr/io.h>
+#include <avr/wdt.h>
+#include <util/delay_basic.h>
 #include <stdint.h>
 #include "board.h"
 #include "timer8_drv.h"
@@ -51,8 +53,6 @@ static void delay_ms(
     uint16_t i;
     uint8_t  j, k;
 
-    // TODO - clean this up
-
     if(is_init == TRUE)
     {
         disable_interrupt();
@@ -96,13 +96,13 @@ static void delay_ms(
 
 void time_init(void)
 {
+    wdt_reset();
     disable_interrupt();
 
     Timer8_clear();
 
     // wait to let the Xtal stabilize after a power-on
-    uint16_t i;
-    for(i=0; i < 0xFFFF; i += 1);
+    _delay_loop_2(0xFFFF);
 
     Timer8_overflow_it_disable();
     Timer8_compare_a_it_disable();
@@ -130,9 +130,12 @@ void time_init(void)
 
     is_init = TRUE;
     enable_interrupt();
+
+    wdt_reset();
+    _delay_loop_2(0xFFFF);
 }
 
-void time_sleep_ms(
+void time_delay_ms(
         const uint16_t interval)
 {
     if(interval != 0)

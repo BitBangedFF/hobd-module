@@ -19,4 +19,8 @@ uint16_t obd_uart_getc(void);
 void obd_uart_putc(
         const uint8_t data);
 
+void obd_uart_send(
+        const uint8_t * const data,
+        const uint16_t size);
+
 #endif	/* OBD_UART_H */

@@ -11,7 +11,7 @@
 
 void time_init(void);
 
-void time_sleep_ms(
+void time_delay_ms(
         const uint16_t interval);
 
 uint32_t time_get_ms(void);

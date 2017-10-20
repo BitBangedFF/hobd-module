@@ -9,6 +9,12 @@
 
 #include <stdint.h>
 
-//TODO
+void comm_init(void);
+
+void comm_deinit(void);
+
+void comm_update(void);
+
+void comm_check_timeout_reset(void);
 
 #endif	/* COMM_H */

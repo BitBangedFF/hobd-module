@@ -68,17 +68,12 @@ int main( void )
     {
         wdt_reset();
 
-        const uint16_t data = obd_uart_getc();
-
-        if(data != RING_BUFFER_NO_DATA)
-        {
-            led_toggle();
-        }
-
-        // TODO
+        comm_update();
 
         if(time_get_and_clear_timer() != 0)
         {
+            comm_check_timeout_reset();
+
             diagnostics_update();
         }
     }
